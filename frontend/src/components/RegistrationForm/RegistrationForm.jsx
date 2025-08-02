@@ -184,7 +184,6 @@ const RegistrationForm = () => {
               )}
             </div>
           </div>
-          {/* Email field */}
           <div className='rf-input-group'>
             <div className='rf-input-wrapper'>
               <Mail className='rf-input-icon' size={18} />
