@@ -28,10 +28,9 @@ const RegistrationForm = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [registrationStatus, setRegistrationStatus] = useState(null);
+  const [registrationStatus, setRegistrationStatus] = useState(null); // 'submitting', 'success', 'error'
   const [errors, setErrors] = useState({});
 
-  // Validation functions
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -42,97 +41,81 @@ const RegistrationForm = () => {
   };
 
   const validatePhone = (phone) => {
+    // A simple regex for international phone numbers
     const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
     return phoneRegex.test(phone.replace(/\s/g, ""));
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.firstName.trim()) {
+    if (!formData.firstName.trim())
       newErrors.firstName = "First name is required";
-    }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
-    }
-
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (!validatePassword(formData.password)) {
       newErrors.password = "Password must be at least 6 characters";
     }
-
     if (!formData.mobile.trim()) {
       newErrors.mobile = "Mobile number is required";
     } else if (!validatePhone(formData.mobile)) {
       newErrors.mobile = "Please enter a valid mobile number";
     }
-
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = "You must agree to the terms and conditions";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  //handleSubmit now simulates the backend call
+  const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Run validation
     if (!validateForm()) {
       return;
     }
 
     setRegistrationStatus("submitting");
 
-    try {
-      const response = await apiService.auth.register(formData);
+    // Simulate network delay
+    setTimeout(() => {
+      setRegistrationStatus("success");
+      console.log("Registration successful (simulated)", formData);
 
-      if (response.data) {
-        setRegistrationStatus("success");
-        const data = response.data;
-        console.log("Registration successful", data);
+      // Clear the form on successful submission
+      setFormData({
+        email: "",
+        password: "",
+        firstName: "",
+        lastName: "",
+        mobile: "",
+        receiveOffers: false,
+        agreeToTerms: false,
+      });
+      setErrors({});
 
-        // Clear the form
-        setFormData({
-          email: "",
-          password: "",
-          firstName: "",
-          lastName: "",
-          mobile: "",
-          receiveOffers: false,
-          agreeToTerms: false,
-        });
-        setErrors({});
-      }
-    } catch (error) {
-      setRegistrationStatus("error");
-      const errorMessage = handleApiError(error, "Registration failed");
-      console.error("Error during registration:", errorMessage);
-    }
+      //Hide the success message after a few seconds
+      setTimeout(() => {
+        setRegistrationStatus(null);
+      }, 5000);
+    }, 1500);
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
-    // Clear error for this field when user starts typing
     if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -148,11 +131,11 @@ const RegistrationForm = () => {
             <div className='rf-logo-icon'>
               <UserPlus size={32} />
             </div>
-            <h1 className='rf-brand'>FilmSpot</h1>
+            <h1 className='rf-brand'>Cinex</h1>
             <span className='rf-brand-subtitle'>Cinema</span>
           </div>
           <div className='rf-welcome'>
-            <h2 className='rf-title'>Join FilmSpot</h2>
+            <h2 className='rf-title'>Join Cinex</h2>
             <p className='rf-subtitle'>
               Create your account and start your movie journey
             </p>
@@ -181,7 +164,6 @@ const RegistrationForm = () => {
                 <span className='rf-error-text'>{errors.firstName}</span>
               )}
             </div>
-
             <div className='rf-input-group'>
               <div className='rf-input-wrapper'>
                 <User className='rf-input-icon' size={18} />
@@ -202,7 +184,6 @@ const RegistrationForm = () => {
               )}
             </div>
           </div>
-
           {/* Email field */}
           <div className='rf-input-group'>
             <div className='rf-input-wrapper'>
@@ -221,7 +202,6 @@ const RegistrationForm = () => {
               <span className='rf-error-text'>{errors.email}</span>
             )}
           </div>
-
           {/* Password field */}
           <div className='rf-input-group'>
             <div className='rf-input-wrapper'>
@@ -248,7 +228,6 @@ const RegistrationForm = () => {
               <span className='rf-error-text'>{errors.password}</span>
             )}
           </div>
-
           {/* Mobile field */}
           <div className='rf-input-group'>
             <div className='rf-input-wrapper'>
@@ -267,7 +246,6 @@ const RegistrationForm = () => {
               <span className='rf-error-text'>{errors.mobile}</span>
             )}
           </div>
-
           {/* Checkboxes */}
           <div className='rf-checkbox-group'>
             <label className='rf-checkbox'>
@@ -285,7 +263,6 @@ const RegistrationForm = () => {
                 </span>
               </div>
             </label>
-
             <label className='rf-checkbox'>
               <input
                 type='checkbox'
@@ -312,7 +289,6 @@ const RegistrationForm = () => {
               <span className='rf-error-text'>{errors.agreeToTerms}</span>
             )}
           </div>
-
           {/* Status Messages */}
           {registrationStatus === "submitting" && (
             <div className='rf-status rf-status-loading'>
@@ -320,21 +296,18 @@ const RegistrationForm = () => {
               <span>Creating your account...</span>
             </div>
           )}
-
           {registrationStatus === "success" && (
             <div className='rf-status rf-status-success'>
               <CheckCircle className='rf-status-icon' size={16} />
-              <span>Registration successful! Welcome to FilmSpot!</span>
+              <span>Registration successful! Welcome to Cinex!</span>
             </div>
           )}
-
           {registrationStatus === "error" && (
             <div className='rf-status rf-status-error'>
               <AlertCircle className='rf-status-icon' size={16} />
               <span>Registration failed. Please try again.</span>
             </div>
           )}
-
           {/* Submit button */}
           <button
             type='submit'
@@ -354,18 +327,16 @@ const RegistrationForm = () => {
           </button>
         </form>
 
-        {/* Footer */}
         <div className='rf-footer'>
           <div className='rf-divider'>
             <span>Already have an account?</span>
           </div>
-          <Link to='/SignIn' className='rf-signin-link'>
+          <Link to='/SignInForm' className='rf-signin-link'>
             Sign In
           </Link>
         </div>
       </div>
 
-      {/* Background decoration */}
       <div className='rf-background'>
         <div className='rf-bg-circle rf-bg-circle-1'></div>
         <div className='rf-bg-circle rf-bg-circle-2'></div>
