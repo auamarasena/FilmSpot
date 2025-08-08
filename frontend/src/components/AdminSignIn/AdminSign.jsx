@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./AdminSignIn.css";
 
 const AdminSignIn = () => {
   return (
