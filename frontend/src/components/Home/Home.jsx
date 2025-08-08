@@ -19,7 +19,7 @@ const featuredMovies = [
     description:
       "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
     moviePoster:
-      "https://image.tmdb.org/t/p/original/oYuLEt3zVCKq27gApcjBWW9A9Mc.jpg",
+      "https://www.moviemars.com/cdn/shop/products/603285d4b4c3b25f5b6bd4f03fc51424.jpg?v=1700314591&width=493",
     duration: "148 min",
     rating: "8.8",
   },
@@ -308,7 +308,7 @@ const Home = () => {
             </h2>
             <p className='hm-cta-description'>
               Join millions of movie lovers and book your tickets today.
-              Experience cinema like never before with Cinex.
+              Experience cinema like never before with FilmSpot.
             </p>
             <div className='hm-cta-actions'>
               <Link to='/movies' className='hm-btn hm-btn-primary hm-btn-large'>
