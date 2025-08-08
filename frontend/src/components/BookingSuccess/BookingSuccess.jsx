@@ -15,13 +15,13 @@ function BookingSuccess() {
     totalAmount,
     userDetails,
     showtimeDetails,
-  } = location.state || {};
+  } = location.state || {}; // The '|| {}' prevents errors if the state is undefined.
 
   const displayData = {
     movieTitle: movieTitle || "Spider-Man: Far from Home",
     theatreLocation:
       showtimeDetails?.screenId?.theatreId?.location ||
-      "Cinex - Colombo City Center",
+      "FilmSpot - Colombo City Center",
     screenNumber: showtimeDetails?.screenId?.screenNumber || "02",
     ticketNo: booking?.ticketNo || "ABC123XYZ",
     ticketCount: selectedSeats?.length || booking?.seatCount || 2,
@@ -31,9 +31,9 @@ function BookingSuccess() {
     totalAmount: totalAmount || 3000,
     customerName: userDetails
       ? `${userDetails.firstName} ${userDetails.lastName}`
-      : "Kisara Sandes",
+      : "Anuda Amarasena",
     customerMobile: userDetails?.mobile || "071-234-5678",
-    customerEmail: userDetails?.email || "kisara@example.com",
+    customerEmail: userDetails?.email || "anuda@example.com",
   };
 
   const handleGoHome = () => {
