@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-
 const PayPalPayment = ({
   amount,
   movieTitle,
@@ -62,7 +61,7 @@ const PayPalPayment = ({
                     },
                   ],
                   application_context: {
-                    brand_name: "CINEX Movie Booking",
+                    brand_name: "FilmSpot Movie Booking",
                     locale: "en-US",
                     landing_page: "BILLING",
                     shipping_preference: "NO_SHIPPING",
