@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import "./BookingHistory.css";
 import { useNavigate } from "react-router-dom";
 
 const mockBookings = [

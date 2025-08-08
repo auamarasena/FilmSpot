@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import "./SignIn.css";
 import {
   Mail,
   Lock,

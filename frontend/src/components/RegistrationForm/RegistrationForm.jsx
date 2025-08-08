@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import "./RegistrationForm.css";
 import {
   Mail,
   Lock,
@@ -131,11 +130,11 @@ const RegistrationForm = () => {
             <div className='rf-logo-icon'>
               <UserPlus size={32} />
             </div>
-            <h1 className='rf-brand'>Cinex</h1>
+            <h1 className='rf-brand'>FilmSpot</h1>
             <span className='rf-brand-subtitle'>Cinema</span>
           </div>
           <div className='rf-welcome'>
-            <h2 className='rf-title'>Join Cinex</h2>
+            <h2 className='rf-title'>Join FilmSpot</h2>
             <p className='rf-subtitle'>
               Create your account and start your movie journey
             </p>
@@ -298,7 +297,7 @@ const RegistrationForm = () => {
           {registrationStatus === "success" && (
             <div className='rf-status rf-status-success'>
               <CheckCircle className='rf-status-icon' size={16} />
-              <span>Registration successful! Welcome to Cinex!</span>
+              <span>Registration successful! Welcome to FilmSpot!</span>
             </div>
           )}
           {registrationStatus === "error" && (
