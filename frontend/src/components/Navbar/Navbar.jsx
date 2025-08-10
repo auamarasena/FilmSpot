@@ -150,10 +150,10 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
               </div>
             ) : (
               <div className='nb-auth-buttons'>
-                <Link to='/SignInForm'>
+                <Link to='/sign-in'>
                   <button className='nb-login-button'>Sign In</button>
                 </Link>
-                <Link to='/RegistrationForm'>
+                <Link to='/reg-form'>
                   <button className='nb-signup-button'>Get Started</button>
                 </Link>
               </div>
@@ -186,12 +186,10 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
 
           {!isLoggedIn && (
             <div className='nb-mobile-auth'>
-              <Link to='/SignInForm' onClick={() => setIsMobileMenuOpen(false)}>
+              <Link to='/sign-in' onClick={() => setIsMobileMenuOpen(false)}>
                 <button className='nb-mobile-login-btn'>Sign In</button>
               </Link>
-              <Link
-                to='/RegistrationForm'
-                onClick={() => setIsMobileMenuOpen(false)}>
+              <Link to='/reg-form' onClick={() => setIsMobileMenuOpen(false)}>
                 <button className='nb-mobile-signup-btn'>Get Started</button>
               </Link>
             </div>
