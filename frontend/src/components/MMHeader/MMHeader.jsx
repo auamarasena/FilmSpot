@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
-
+import "./MMHeader.css";
 
 const mockInitialMovies = [
   {
@@ -76,95 +76,64 @@ const MMHeader = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError(null);
     setSubmitting(true);
-
-    // Simulate network delay
     setTimeout(() => {
-      try {
-        if (editingMovie) {
-          //update
-          const updatedMovie = { ...editingMovie, ...formData };
-          setMovies((prevMovies) =>
-            prevMovies.map((movie) =>
-              movie._id === editingMovie._id ? updatedMovie : movie
-            )
-          );
-        } else {
-          //create
-          const newMovie = {
-            ...formData,
-            _id: `movie-${new Date().getTime()}`,
-          };
-          setMovies((prevMovies) => [...prevMovies, newMovie]);
-        }
-        handleCloseModal();
-      } catch (err) {
-        setError(
-          editingMovie
-            ? "Failed to update movie locally."
-            : "Failed to create movie locally."
+      if (editingMovie) {
+        const updatedMovie = { ...editingMovie, ...formData };
+        setMovies((prev) =>
+          prev.map((m) => (m._id === editingMovie._id ? updatedMovie : m))
         );
-      } finally {
-        setSubmitting(false);
+      } else {
+        const newMovie = { ...formData, _id: `movie-${Date.now()}` };
+        setMovies((prev) => [...prev, newMovie]);
       }
-    }, 1500);
+      handleCloseModal();
+      setSubmitting(false);
+    }, 1000);
   };
 
   const handleDeleteMovie = (movieId) => {
     if (!window.confirm("Are you sure you want to delete this movie?")) return;
     setDeleting(movieId);
     setTimeout(() => {
-      try {
-        setMovies((prevMovies) =>
-          prevMovies.filter((movie) => movie._id !== movieId)
-        );
-      } catch (err) {
-        setError("Failed to delete movie locally.");
-      } finally {
-        setDeleting(null);
-      }
+      setMovies((prev) => prev.filter((m) => m._id !== movieId));
+      setDeleting(null);
     }, 1000);
   };
 
   const handleEditMovie = (movie) => {
     setEditingMovie(movie);
     setFormData({
-      title: movie.title,
-      description: movie.description,
-      cast: movie.cast,
-      director: movie.director,
+      title: movie.title || "",
+      description: movie.description || "",
+      cast: movie.cast || "",
+      director: movie.director || "",
       releaseDate: movie.releaseDate ? movie.releaseDate.split("T")[0] : "",
-      duration: movie.duration,
-      rating: movie.rating,
-      genres: movie.genres,
-      imdbRating: movie.imdbRating,
-      trailerURL: movie.trailerURL,
-      moviePoster: movie.moviePoster,
-      moviePosterHomepage: movie.moviePosterHomepage,
+      duration: movie.duration || "",
+      rating: movie.rating || "",
+      genres: movie.genres || "",
+      imdbRating: movie.imdbRating || "",
+      trailerURL: movie.trailerURL || "",
+      moviePoster: movie.moviePoster || "",
+      moviePosterHomepage: movie.moviePosterHomepage || "",
     });
     const movieGenres = movie.genres
-      ? movie.genres.split(",").map(
-          (g) =>
-            genreOptions.find((opt) => opt.value === g.trim()) || {
-              value: g.trim(),
-              label: g.trim(),
-            }
-        )
+      ? movie.genres
+          .split(",")
+          .map(
+            (g) =>
+              genreOptions.find((opt) => opt.value === g.trim()) || {
+                value: g.trim(),
+                label: g.trim(),
+              }
+          )
       : [];
     setSelectedGenres(movieGenres);
     setShowForm(true);
-    setError(null);
   };
 
   const handleAddMovie = () => {
-    setShowForm(true);
-    setError(null);
-  };
-
-  const handleCloseModal = () => {
-    setShowForm(false);
-    setError(null);
+    setEditingMovie(null);
     setFormData({
       title: "",
       description: "",
@@ -180,12 +149,12 @@ const MMHeader = () => {
       moviePosterHomepage: "",
     });
     setSelectedGenres([]);
-    setEditingMovie(null);
+    setShowForm(true);
   };
 
+  const handleCloseModal = () => setShowForm(false);
   const handleInputChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-
   const handleGenreChange = (selectedOptions) => {
     setSelectedGenres(selectedOptions || []);
     setFormData({
@@ -199,8 +168,7 @@ const MMHeader = () => {
   const filteredMovies = movies.filter(
     (movie) =>
       (movie.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (movie.director || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (movie.cast || "").toLowerCase().includes(searchTerm.toLowerCase())
+      (movie.director || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const genreOptions = [
@@ -215,11 +183,13 @@ const MMHeader = () => {
     { value: "sci-fi", label: "Science Fiction" },
     { value: "thriller", label: "Thriller" },
   ];
-  const customSelectStyles = {};
 
-  if (loading) {
+  const customSelectStyles = {
+    /* Style object from previous answer */
+  };
+
+  if (loading)
     return <div className='mm-loading-container'>Loading Movies...</div>;
-  }
 
   return (
     <div className='mm-container'>
@@ -250,8 +220,12 @@ const MMHeader = () => {
               <div className='mm-movies-grid'>
                 {filteredMovies.map((movie) => (
                   <div key={movie._id} className='mm-movie-card'>
+                    {/* UPDATED: Image is now displayed from movie data */}
                     <img
-                      src={movie.moviePoster}
+                      src={
+                        movie.moviePoster ||
+                        "https://via.placeholder.com/240x360.png?text=No+Image"
+                      }
                       alt={movie.title}
                       className='mm-movie-poster'
                     />
@@ -287,6 +261,7 @@ const MMHeader = () => {
             </button>
             {error && <div className='mm-error-message'>{error}</div>}
             <form onSubmit={handleSubmit} className='mm-form'>
+              {/* --- FORM FIELDS --- */}
               <input
                 type='text'
                 placeholder='Title'
@@ -301,24 +276,58 @@ const MMHeader = () => {
                 value={formData.description}
                 onChange={handleInputChange}
               />
+              <div className='mm-form-row'>
+                <input
+                  type='text'
+                  placeholder='Cast (comma separated)'
+                  name='cast'
+                  value={formData.cast}
+                  onChange={handleInputChange}
+                />
+                <input
+                  type='text'
+                  placeholder='Director'
+                  name='director'
+                  value={formData.director}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className='mm-form-row'>
+                <input
+                  type='date'
+                  name='releaseDate'
+                  value={formData.releaseDate}
+                  onChange={handleInputChange}
+                />
+                <input
+                  type='text'
+                  placeholder='Duration (e.g., 2h 30m)'
+                  name='duration'
+                  value={formData.duration}
+                  onChange={handleInputChange}
+                />
+              </div>
+              {/* --- NEW: IMAGE URL INPUTS --- */}
               <input
                 type='text'
-                placeholder='Cast'
-                name='cast'
-                value={formData.cast}
+                placeholder='Poster URL (for cards)'
+                name='moviePoster'
+                value={formData.moviePoster}
                 onChange={handleInputChange}
               />
               <input
                 type='text'
-                placeholder='Director'
-                name='director'
-                value={formData.director}
+                placeholder='Homepage Poster URL (large)'
+                name='moviePosterHomepage'
+                value={formData.moviePosterHomepage}
                 onChange={handleInputChange}
               />
+
               <input
-                type='date'
-                name='releaseDate'
-                value={formData.releaseDate}
+                type='text'
+                placeholder='Trailer URL (YouTube)'
+                name='trailerURL'
+                value={formData.trailerURL}
                 onChange={handleInputChange}
               />
               <Select
@@ -327,7 +336,9 @@ const MMHeader = () => {
                 value={selectedGenres}
                 onChange={handleGenreChange}
                 styles={customSelectStyles}
+                placeholder='Select genres...'
               />
+
               <div className='mm-form-actions'>
                 <button
                   type='button'
