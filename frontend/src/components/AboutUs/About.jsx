@@ -1,9 +1,9 @@
 import React from "react";
+import "./Aboutus.css";
 
 const Aboutus = () => {
   return (
     <div className='abs-about-us-container'>
-      {/* Hero Section */}
       <section className='abs-hero-section'>
         <div className='abs-hero-content'>
           <h1 className='abs-main-title'>About FilmSpot</h1>
@@ -13,7 +13,6 @@ const Aboutus = () => {
         </div>
       </section>
 
-      {/* Our Story Section */}
       <section className='abs-story-section'>
         <div className='abs-content-wrapper'>
           <h2 className='abs-section-title'>Our Story</h2>
@@ -32,7 +31,6 @@ const Aboutus = () => {
         </div>
       </section>
 
-      {/* Mission & Vision*/}
       <section className='abs-mission-vision'>
         <div className='abs-content-wrapper'>
           <div className='abs-mission-vision-grid'>
@@ -58,7 +56,6 @@ const Aboutus = () => {
         </div>
       </section>
 
-      {/* Values Section */}
       <section className='abs-values-section'>
         <div className='abs-content-wrapper'>
           <h2 className='abs-section-title'>Our Core Values</h2>
@@ -96,7 +93,6 @@ const Aboutus = () => {
         </div>
       </section>
 
-      {/* Leadership Team*/}
       <section className='abs-team-section'>
         <div className='abs-content-wrapper'>
           <h2 className='abs-section-title'>Meet Our Leadership Team</h2>
@@ -160,7 +156,6 @@ const Aboutus = () => {
         </div>
       </section>
 
-      {/* Statistics Section*/}
       <section className='abs-stats-section'>
         <div className='abs-content-wrapper'>
           <div className='abs-stats-grid'>
