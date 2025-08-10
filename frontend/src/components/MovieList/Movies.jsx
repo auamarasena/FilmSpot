@@ -11,6 +11,7 @@ import {
   Grid,
   List,
 } from "lucide-react";
+import "./movies.css";
 
 const mockNowShowingMovies = [
   {
