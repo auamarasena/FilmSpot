@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Filter, X, ChevronDown } from "lucide-react";
+import "./MovieListSearchbar.css";
 
 const mockGenres = [
   "Action",
