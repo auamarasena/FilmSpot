@@ -1,0 +1,349 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap");
+
+:root {
+  /* Color Palette */
+  --color-primary: #ff6b35;
+  --color-primary-hover: #ff8c42;
+  --color-background: #0a0a0a;
+  --color-surface: #1f1f1f;
+  --color-accent: rgba(255, 107, 53, 0.15);
+  --color-accent-hover: rgba(255, 107, 53, 0.25);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b8b8b8;
+  --color-border: rgba(255, 107, 53, 0.3);
+  --color-success: #2ddc7a;
+  --color-error: #ff5a5a;
+
+  /* Typography & Sizing */
+  --font-family-main: "Inter", sans-serif;
+  --font-family-display: "Poppins", sans-serif;
+  --border-radius-large: 20px;
+  --border-radius-small: 12px;
+
+  /* Effects */
+  --shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 30px rgba(255, 107, 53, 0.3);
+  --transition-smooth: all 0.3s ease;
+}
+
+.hm-form-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-background);
+  font-family: var(--font-family-main);
+}
+
+.hm-form-container {
+  width: 100%;
+  max-width: 450px;
+  background: var(--color-surface);
+  border-radius: var(--border-radius-large);
+  border: 1px solid var(--color-border);
+  padding: 40px;
+  position: relative;
+  z-index: 2;
+  box-shadow: var(--shadow-medium);
+  backdrop-filter: blur(10px);
+}
+
+.hm-form-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.hm-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.hm-logo-icon {
+  color: var(--color-primary);
+}
+.hm-brand {
+  font-family: var(--font-family-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.hm-form-title {
+  font-family: var(--font-family-display);
+  font-size: 1.75rem;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+}
+.hm-form-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.hm-form-subtitle strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* --- Form Elements --- */
+.hm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.hm-input-group {
+  position: relative;
+}
+.hm-input-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+.hm-input-wrapper {
+  position: relative;
+}
+.hm-input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  transition: color var(--transition-smooth);
+}
+.hm-input {
+  width: 100%;
+  padding: 14px 16px 14px 48px;
+  background: var(--color-accent);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-small);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  transition: var(--transition-smooth);
+}
+.hm-input::placeholder {
+  color: var(--color-text-secondary);
+}
+.hm-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-accent-hover);
+  box-shadow: var(--shadow-glow);
+}
+.hm-input:focus + .hm-input-icon {
+  color: var(--color-primary);
+}
+.hm-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hm-password-toggle:hover {
+  color: var(--color-text-primary);
+}
+
+.hm-form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+.hm-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+.hm-checkbox input {
+  display: none;
+}
+.hm-checkbox-mark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-accent);
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hm-checkbox-mark::after {
+  content: "✓";
+  font-size: 14px;
+  color: var(--color-text-primary);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: var(--transition-smooth);
+}
+.hm-checkbox input:checked + .hm-checkbox-mark {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.hm-checkbox input:checked + .hm-checkbox-mark::after {
+  opacity: 1;
+  transform: scale(1);
+}
+.hm-form-link {
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--transition-smooth);
+}
+.hm-form-link:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.hm-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--border-radius-small);
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+.hm-status-loading {
+  background-color: var(--color-accent);
+  border-color: var(--color-border);
+}
+.hm-status-success {
+  background-color: rgba(45, 220, 122, 0.1);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+.hm-status-error {
+  background-color: rgba(255, 90, 90, 0.1);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+.hm-status-icon {
+  flex-shrink: 0;
+}
+.hm-spinning {
+  animation: spin 1s linear infinite;
+}
+
+.hm-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-hover)
+  );
+  border: none;
+  border-radius: var(--border-radius-small);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  width: 100%;
+}
+.hm-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+.hm-submit-btn:disabled {
+  background: var(--color-accent);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+.hm-btn-icon {
+  flex-shrink: 0;
+}
+
+.hm-form-footer {
+  margin-top: 32px;
+  text-align: center;
+}
+.hm-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+.hm-divider::before,
+.hm-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--color-border);
+}
+.hm-divider:not(:empty)::before {
+  margin-right: 0.5em;
+}
+.hm-divider:not(:empty)::after {
+  margin-left: 0.5em;
+}
+.hm-register-link {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  padding: 14px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-small);
+  font-weight: 600;
+  transition: var(--transition-smooth);
+  color: var(--color-text-primary);
+}
+.hm-register-link:hover {
+  background: var(--color-accent);
+  border-color: var(--color-primary);
+}
+
+.hm-form-background {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+.hm-bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(150px);
+  opacity: 0.4;
+}
+.hm-bg-circle-1 {
+  width: 500px;
+  height: 500px;
+  background: var(--color-primary);
+  top: -10%;
+  left: -20%;
+}
+.hm-bg-circle-2 {
+  width: 600px;
+  height: 600px;
+  background: var(--color-secondary);
+  bottom: -20%;
+  right: -25%;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
