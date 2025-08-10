@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import MovieListSearchBar from "./MovieListSearchbar";
-import "./Movies.css";
 import {
   Play,
   Ticket,

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import "./MovieDetails.css";
 
 const mockMovie = {
   _id: "inception-2010",
