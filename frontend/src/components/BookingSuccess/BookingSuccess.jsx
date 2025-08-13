@@ -1,5 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import "./BookingSuccess.css";
+
 function BookingSuccess() {
   const location = useLocation();
   const navigate = useNavigate();

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import "./SeatSelection.css";
 
 const mockShowtime = {
   _id: "mock-showtime-1",

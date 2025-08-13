@@ -1,5 +1,5 @@
 import React from "react";
-import "./UpcomingMovie.css";
+import "./UpcomingMovies.css";
 
 function UpComingMovie() {
   return (

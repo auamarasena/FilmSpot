@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useAnimate } from "framer-motion";
 import {
   Play,
@@ -17,7 +17,8 @@ const featuredMovies = [
   {
     id: "feat-1",
     title: "Inception",
-    description: "A thief who steals corporate secrets...",
+    description:
+      "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
     moviePoster:
       "https://www.moviemars.com/cdn/shop/products/603285d4b4c3b25f5b6bd4f03fc51424.jpg?v=1700314591&width=493",
     duration: "148 min",
@@ -26,7 +27,8 @@ const featuredMovies = [
   {
     id: "feat-2",
     title: "The Dark Knight",
-    description: "When the menace known as the Joker...",
+    description:
+      "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
     moviePoster:
       "https://image.tmdb.org/t/p/original/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
     duration: "152 min",
@@ -35,7 +37,8 @@ const featuredMovies = [
   {
     id: "feat-3",
     title: "Interstellar",
-    description: "A team of explorers travel through a wormhole...",
+    description:
+      "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
     moviePoster:
       "https://image.tmdb.org/t/p/original/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
     duration: "169 min",
@@ -76,36 +79,6 @@ const nowShowingMovies = [
     rating: "8.1",
   },
 ];
-const comingSoonMovies = [
-  {
-    id: "soon-1",
-    title: "Dune: Part Two",
-    moviePoster:
-      "https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8soXRmfuXb.jpg",
-    genre: "Sci-Fi, Adventure",
-  },
-  {
-    id: "soon-2",
-    title: "The Batman",
-    moviePoster:
-      "https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onHQ.jpg",
-    genre: "Action, Crime",
-  },
-  {
-    id: "soon-3",
-    title: "Spider-Man: Across the Spider-Verse",
-    moviePoster:
-      "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg",
-    genre: "Animation, Action",
-  },
-  {
-    id: "soon-4",
-    title: "Oppenheimer",
-    moviePoster:
-      "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
-    genre: "Drama, History",
-  },
-];
 const stats = [
   { icon: <Users />, number: 500, unit: "K+", label: "Happy Customers" },
   { icon: <Award />, number: 50, unit: "+", label: "Partner Theaters" },
@@ -123,14 +96,9 @@ const sectionVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut",
-      staggerChildren: 0.2,
-    },
+    transition: { duration: 0.6, ease: "easeOut", staggerChildren: 0.2 },
   },
 };
-
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
@@ -138,11 +106,14 @@ const itemVariants = {
 
 const StatCard = ({ stat }) => {
   const [ref, animate] = useAnimate();
-
   useEffect(() => {
-    animate(ref.current, { innerHTML: stat.number }, { duration: 2 });
+    const controls = animate(
+      ref.current,
+      { innerHTML: stat.number },
+      { duration: 2 }
+    );
+    return () => controls.stop();
   }, [stat.number, animate, ref]);
-
   return (
     <motion.div className='hm-stat-card' variants={itemVariants}>
       <div className='hm-stat-icon'>{stat.icon}</div>
@@ -157,40 +128,50 @@ const StatCard = ({ stat }) => {
   );
 };
 
-const MovieCard = ({ movie }) => (
-  <motion.div
-    className='hm-movie-card'
-    variants={itemVariants}
-    whileHover='hover'>
-    <div className='hm-movie-poster'>
-      <motion.img src={movie.moviePoster} alt={movie.title} />
-      <div className='hm-movie-overlay'>
-        <Link
-          to={`/booking/${createSlug(movie.title)}`}
-          className='hm-book-btn hm-btn'>
-          <Ticket size={18} />
-          Book Now
-        </Link>
+const MovieCard = ({ movie }) => {
+  const navigate = useNavigate();
+
+  //Booking logic
+  const handleBookNow = () => {
+    const mockBookingId = `bk_${Date.now()}`;
+
+    navigate(`/booking-confirmation?bookingId=${mockBookingId}`);
+  };
+
+  return (
+    <motion.div
+      className='hm-movie-card'
+      variants={itemVariants}
+      whileHover='hover'>
+      <div className='hm-movie-poster'>
+        <motion.img src={movie.moviePoster} alt={movie.title} />
+        <div className='hm-movie-overlay'>
+          <button onClick={handleBookNow} className='hm-book-btn hm-btn'>
+            <Ticket size={18} />
+            Book Now
+          </button>
+        </div>
       </div>
-    </div>
-    <div className='hm-movie-info'>
-      <h3 className='hm-movie-title'>{movie.title}</h3>
-      <div className='hm-movie-details'>
-        <span className='hm-duration'>
-          <Clock size={14} />
-          {movie.duration}
-        </span>
-        <span className='hm-rating'>
-          <Star size={14} />
-          {movie.rating}
-        </span>
+      <div className='hm-movie-info'>
+        <h3 className='hm-movie-title'>{movie.title}</h3>
+        <div className='hm-movie-details'>
+          <span className='hm-duration'>
+            <Clock size={14} />
+            {movie.duration}
+          </span>
+          <span className='hm-rating'>
+            <Star size={14} />
+            {movie.rating}
+          </span>
+        </div>
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 const HeroSlider = () => {
   const [activeSlide, setActiveSlide] = useState(0);
+  const navigate = useNavigate(); // Hook for navigation
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -201,28 +182,12 @@ const HeroSlider = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const slideVariants = {
-    hidden: { opacity: 0, scale: 1.05 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 1, ease: [0.42, 0, 0.58, 1] },
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.95,
-      transition: { duration: 0.6, ease: [0.42, 0, 0.58, 1] },
-    },
+  const handleHeroBookNow = () => {
+    const mockBookingId = `bk_hero_${Date.now()}`;
+    navigate(`/booking-confirmation?bookingId=${mockBookingId}`);
   };
 
-  const textItemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.8, ease: "easeOut" },
-    },
-  };
+  const currentMovie = featuredMovies[activeSlide];
 
   return (
     <section className='hm-hero-section'>
@@ -242,83 +207,69 @@ const HeroSlider = () => {
         <motion.div
           key={activeSlide}
           className='hm-hero-slide'
-          style={{
-            backgroundImage: `url(${featuredMovies[activeSlide].moviePoster})`,
-          }}
-          variants={slideVariants}
-          initial='hidden'
-          animate='visible'
-          exit='exit'>
+          style={{ backgroundImage: `url(${currentMovie.moviePoster})` }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1, ease: [0.42, 0, 0.58, 1] }}>
           <div className='hm-hero-overlay'></div>
         </motion.div>
       </AnimatePresence>
-
       <div className='hm-hero-content hm-container'>
-        <AnimatePresence mode='wait'>
-          <motion.div
-            key={activeSlide}
-            className='hm-hero-text'
-            variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-            initial='hidden'
-            animate='visible'
-            exit='hidden'>
-            <motion.div className='hm-hero-badge' variants={textItemVariants}>
-              <Star className='hm-star-icon' /> <span>Featured Movie</span>
-            </motion.div>
-            <motion.h1 className='hm-hero-title' variants={textItemVariants}>
-              {featuredMovies[activeSlide].title}
-            </motion.h1>
-            <motion.p
-              className='hm-hero-description'
-              variants={textItemVariants}>
-              {featuredMovies[activeSlide].description}
-            </motion.p>
-            <motion.div className='hm-movie-meta' variants={textItemVariants}>
-              <span className='hm-meta-item'>
-                <Clock size={16} />
-                {featuredMovies[activeSlide].duration}
-              </span>
-              <span className='hm-meta-item'>
-                <Star size={16} />
-                {featuredMovies[activeSlide].rating}
-              </span>
-            </motion.div>
-            <motion.div className='hm-hero-actions' variants={textItemVariants}>
-              <Link
-                to={`/booking/${createSlug(featuredMovies[activeSlide].title)}`}
-                className='hm-btn hm-btn-primary'>
-                <Ticket size={20} />
-                Book Now
-              </Link>
-              <Link
-                to={`/movie/${createSlug(featuredMovies[activeSlide].title)}`}
-                className='hm-btn hm-btn-secondary'>
-                <Play size={20} />
-                Watch Trailer
-              </Link>
-            </motion.div>
+        <motion.div
+          key={activeSlide}
+          className='hm-hero-text'
+          initial='hidden'
+          animate='visible'
+          exit='hidden'
+          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
+          <motion.div className='hm-hero-badge' variants={itemVariants}>
+            <Star className='hm-star-icon' /> <span>Featured Movie</span>
           </motion.div>
-        </AnimatePresence>
-
-        <AnimatePresence mode='wait'>
-          <motion.div
-            key={activeSlide}
-            className='hm-hero-poster'
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
-            }}
-            exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.5 } }}>
-            <img
-              src={featuredMovies[activeSlide].moviePoster}
-              alt={featuredMovies[activeSlide].title}
-            />
+          <motion.h1 className='hm-hero-title' variants={itemVariants}>
+            {currentMovie.title}
+          </motion.h1>
+          <motion.p className='hm-hero-description' variants={itemVariants}>
+            {currentMovie.description}
+          </motion.p>
+          <motion.div className='hm-movie-meta' variants={itemVariants}>
+            <span className='hm-meta-item'>
+              <Clock size={16} />
+              {currentMovie.duration}
+            </span>
+            <span className='hm-meta-item'>
+              <Star size={16} />
+              {currentMovie.rating}
+            </span>
           </motion.div>
-        </AnimatePresence>
+          <motion.div className='hm-hero-actions' variants={itemVariants}>
+            <button
+              onClick={handleHeroBookNow}
+              className='hm-btn hm-btn-primary'>
+              <Ticket size={20} />
+              Book Now
+            </button>
+            <Link
+              to={`/movie/${createSlug(currentMovie.title)}`}
+              className='hm-btn hm-btn-secondary'>
+              <Play size={20} />
+              Watch Trailer
+            </Link>
+          </motion.div>
+        </motion.div>
+        <motion.div
+          key={activeSlide}
+          className='hm-hero-poster'
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+          }}
+          exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.5 } }}>
+          <img src={currentMovie.moviePoster} alt={currentMovie.title} />
+        </motion.div>
       </div>
-
       <div className='hm-hero-navigation'>
         {featuredMovies.map((_, index) => (
           <button
@@ -327,6 +278,7 @@ const HeroSlider = () => {
               index === activeSlide ? "hm-active" : ""
             }`}
             onClick={() => setActiveSlide(index)}
+            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>
@@ -338,7 +290,6 @@ const Home = () => {
   return (
     <div className='hm-home-container'>
       <HeroSlider />
-
       <motion.section
         className='hm-stats-section'
         variants={sectionVariants}
@@ -353,7 +304,6 @@ const Home = () => {
           </div>
         </div>
       </motion.section>
-
       <motion.section
         className='hm-movies-section'
         variants={sectionVariants}
@@ -374,8 +324,6 @@ const Home = () => {
           </div>
         </div>
       </motion.section>
-
-      {/* --- NEW: CTA Section --- */}
       <motion.section
         className='hm-cta-section'
         initial={{ opacity: 0 }}

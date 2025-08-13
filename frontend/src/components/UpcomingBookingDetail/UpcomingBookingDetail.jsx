@@ -1,5 +1,4 @@
 import React from "react";
-import "./UpcomingBookingDetail.css";
 import {
   FaTicketAlt,
   FaUser,
@@ -9,6 +8,7 @@ import {
   FaMoneyBillWave,
   FaMapMarkerAlt,
 } from "react-icons/fa";
+import "./UpcomingBookingDetail.css";
 
 const sampleBookingData = {
   bookingDetails: {

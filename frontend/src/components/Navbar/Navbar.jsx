@@ -1,18 +1,14 @@
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import "./Navbar.css";
 
 const Navbar = ({ isLoggedIn, handleLogout }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const toggleDropdown = () => {
-    setShowDropdown((prev) => !prev);
-  };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen((prev) => !prev);
-  };
+  const toggleDropdown = () => setShowDropdown((prev) => !prev);
+  const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -21,17 +17,15 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
         setShowDropdown(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
     <nav className='nb-navbar'>
       <div className='nb-navbar-container'>
         <div className='nb-navbar-content'>
+          {/* Logo */}
           <div className='nb-logo'>
             <Link to='/' className='nb-logo-link'>
               <span className='nb-logo-text'>FilmSpot</span>
@@ -39,6 +33,7 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
             </Link>
           </div>
 
+          {/* Desktop Nav */}
           <div className='nb-nav-links'>
             <NavLink href='/'>Home</NavLink>
             <NavLink href='/movies'>Movies</NavLink>
@@ -59,6 +54,7 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
             </span>
           </button>
 
+          {/* User / Auth */}
           <div className='nb-user-section'>
             {isLoggedIn ? (
               <div className='nb-profile-section' ref={dropdownRef}>
@@ -89,7 +85,7 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
                 {showDropdown && (
                   <div className='nb-dropdown-menu'>
                     <div className='nb-dropdown-header'>
-                      <div className='nb-dropdown-avatar'>K</div>
+                      <div className='nb-dropdown-avatar'>A</div>
                       <div className='nb-dropdown-user-info'>
                         <span className='nb-dropdown-name'>
                           Anuda Amarasena
@@ -102,46 +98,17 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
                     <div className='nb-dropdown-divider'></div>
                     <div className='nb-dropdown-links'>
                       <Link to='/Bookinghistory' className='nb-dropdown-link'>
-                        <svg
-                          width='16'
-                          height='16'
-                          fill='currentColor'
-                          viewBox='0 0 20 20'>
-                          <path d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                        </svg>
                         My Bookings
                       </Link>
                       <Link
                         to='/ChangePasswordForm'
                         className='nb-dropdown-link'>
-                        <svg
-                          width='16'
-                          height='16'
-                          fill='currentColor'
-                          viewBox='0 0 20 20'>
-                          <path
-                            fillRule='evenodd'
-                            d='M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-2a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z'
-                            clipRule='evenodd'
-                          />
-                        </svg>
                         Change Password
                       </Link>
                       <div className='nb-dropdown-divider'></div>
                       <button
                         onClick={handleLogout}
                         className='nb-dropdown-link nb-logout'>
-                        <svg
-                          width='16'
-                          height='16'
-                          fill='currentColor'
-                          viewBox='0 0 20 20'>
-                          <path
-                            fillRule='evenodd'
-                            d='M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z'
-                            clipRule='evenodd'
-                          />
-                        </svg>
                         Sign Out
                       </button>
                     </div>
@@ -168,17 +135,17 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
               Home
             </MobileNavLink>
             <MobileNavLink
-              href='/Moviepage'
+              href='/movies'
               onClick={() => setIsMobileMenuOpen(false)}>
               Movies
             </MobileNavLink>
             <MobileNavLink
-              href='/OffersPromotions'
+              href='/offer'
               onClick={() => setIsMobileMenuOpen(false)}>
               Offers
             </MobileNavLink>
             <MobileNavLink
-              href='/AboutUs'
+              href='/about'
               onClick={() => setIsMobileMenuOpen(false)}>
               About Us
             </MobileNavLink>
@@ -203,7 +170,6 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
 const NavLink = ({ href, children }) => {
   const location = useLocation();
   const isActive = location.pathname === href;
-
   return (
     <Link to={href} className={`nb-nav-link ${isActive ? "nb-active" : ""}`}>
       {children}
@@ -214,7 +180,6 @@ const NavLink = ({ href, children }) => {
 const MobileNavLink = ({ href, children, onClick }) => {
   const location = useLocation();
   const isActive = location.pathname === href;
-
   return (
     <Link
       to={href}

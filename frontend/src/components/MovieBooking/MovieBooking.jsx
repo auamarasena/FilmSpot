@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ShowtimeSelector from "../Showtimes/ShowtimeSelector.jsx";
+import "./MovieBooking.css";
 
 import {
   ArrowLeft,

@@ -4,6 +4,7 @@ import PaymentSummary from "./PaymentSummary";
 import PromoCodeSection from "./PromoCodeSection";
 import UserDetailsSection from "./UserDetailsSection";
 import PayPalPayment from "./PayPalPayment";
+import "./PaymentPage.css";
 
 const PaymentPage = () => {
   const location = useLocation();

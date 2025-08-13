@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
-import "./ShowtimeSelector.css";
 import { format, addDays, parse, isValid } from "date-fns";
 import { useParams, useNavigate } from "react-router-dom";
+import "./ShowtimeSelector.css";
 
 const getMockDate = (dayOffset) =>
   format(addDays(new Date(), dayOffset), "yyyy-MM-dd");

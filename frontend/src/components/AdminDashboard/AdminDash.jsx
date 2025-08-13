@@ -109,7 +109,7 @@ const AdminDash = () => {
             <h3>Main</h3>
             <ul>
               <li
-                onClick={() => handleNavigation("/dashboard")}
+                onClick={() => handleNavigation("/admin-dash")}
                 className='nav-item active'>
                 <span className='nav-icon'>📊</span>
                 Dashboard
@@ -120,19 +120,19 @@ const AdminDash = () => {
             <h3>Management</h3>
             <ul>
               <li
-                onClick={() => handleNavigation("/manage-movies")}
+                onClick={() => handleNavigation("/movie-manage")}
                 className='nav-item'>
                 <span className='nav-icon'>🎬</span>
                 Movies
               </li>
               <li
-                onClick={() => handleNavigation("/manage-showtimes")}
+                onClick={() => handleNavigation("/time-manage")}
                 className='nav-item'>
                 <span className='nav-icon'>🕐</span>
                 Showtimes
               </li>
               <li
-                onClick={() => handleNavigation("/TheatreManage")}
+                onClick={() => handleNavigation("/theatre-manage")}
                 className='nav-item'>
                 <span className='nav-icon'>🏛️</span>
                 Theatres
@@ -143,13 +143,13 @@ const AdminDash = () => {
             <h3>Quick Actions</h3>
             <ul>
               <li
-                onClick={() => handleNavigation("/MMHeader")}
+                onClick={() => handleNavigation("/movie-manage")}
                 className='nav-item'>
                 <span className='nav-icon'>➕</span>
                 Add Movie
               </li>
               <li
-                onClick={() => handleNavigation("/showtimeMG")}
+                onClick={() => handleNavigation("/time-manage")}
                 className='nav-item'>
                 <span className='nav-icon'>⏰</span>
                 Add Showtime
@@ -242,21 +242,21 @@ const AdminDash = () => {
                 title='Add New Movie'
                 description='Upload and configure a new movie'
                 icon='🎬'
-                onClick={() => handleNavigation("/MMHeader")}
+                onClick={() => handleNavigation("/movie-manage")}
                 color='blue'
               />
               <ActionCard
                 title='Schedule Showtime'
                 description='Create new movie showtimes'
                 icon='⏰'
-                onClick={() => handleNavigation("/showtimeMG")}
+                onClick={() => handleNavigation("/time-manage")}
                 color='green'
               />
               <ActionCard
                 title='Manage Theatres'
                 description='Add or edit theatre information'
                 icon='🏛️'
-                onClick={() => handleNavigation("/TheatreManage")}
+                onClick={() => handleNavigation("/theatre-manage")}
                 color='purple'
               />
             </div>
