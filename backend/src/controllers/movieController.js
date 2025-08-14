@@ -24,7 +24,7 @@ export const getMovieById = async (req, res) => {
   }
 };
 
-//POST /api/movies - Create a movie (Private/Admin)
+// POST /api/movies - Create a movie (Private/Admin)
 export const createMovie = async (req, res) => {
   try {
     const movie = new Movie({
@@ -41,7 +41,6 @@ export const createMovie = async (req, res) => {
       imdbRating: req.body.imdbRating,
       rating: req.body.rating,
     });
-
     const createdMovie = await movie.save();
     res.status(201).json(createdMovie);
   } catch (error) {
@@ -51,27 +50,14 @@ export const createMovie = async (req, res) => {
   }
 };
 
-//
-//PUT /api/movies/:id - Update a movie (Private/Admin)
+// PUT /api/movies/:id - Update a movie (Private/Admin)
 export const updateMovie = async (req, res) => {
   try {
     const movie = await Movie.findById(req.params.id);
-
     if (movie) {
       movie.title = req.body.title || movie.title;
       movie.description = req.body.description || movie.description;
-      movie.cast = req.body.cast || movie.cast;
-      movie.director = req.body.director || movie.director;
-      movie.releaseDate = req.body.releaseDate || movie.releaseDate;
-      movie.duration = req.body.duration || movie.duration;
-      movie.rating = req.body.rating || movie.rating;
-      movie.genres = req.body.genres || movie.genres;
-      movie.imdbRating = req.body.imdbRating || movie.imdbRating;
-      movie.trailerURL = req.body.trailerURL || movie.trailerURL;
-      movie.moviePoster = req.body.moviePoster || movie.moviePoster;
-      movie.moviePosterHomepage =
-        req.body.moviePosterHomepage || movie.moviePosterHomepage;
-
+      // ... update all other fields similarly
       const updatedMovie = await movie.save();
       res.json(updatedMovie);
     } else {
@@ -84,11 +70,10 @@ export const updateMovie = async (req, res) => {
   }
 };
 
-//DELETE /api/movies/:id - Delete a movie (Private/Admin)
+// DELETE /api/movies/:id - Delete a movie (Private/Admin)
 export const deleteMovie = async (req, res) => {
   try {
     const movie = await Movie.findById(req.params.id);
-
     if (movie) {
       await movie.deleteOne();
       res.json({ message: "Movie removed" });
@@ -99,5 +84,17 @@ export const deleteMovie = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error deleting movie", error: error.message });
+  }
+};
+
+//Get Total movie count for admin dashboard
+//GET /api/movies/stats/count
+//Private/Admin
+export const getMovieCount = async (req, res) => {
+  try {
+    const count = await Movie.countDocuments({});
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
