@@ -104,7 +104,7 @@ function ChangePasswordForm() {
     setErrors({});
 
     setTimeout(() => {
-      //Demo using the current password.
+      //Demo 
       if (formData.currentPassword === "password123") {
         setSuccess(true);
         setFormData({

@@ -1,0 +1,277 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  --op-color-primary: #ff6b35;
+  --op-color-primary-hover: #ff8c42;
+  --op-color-background: #0a0a0a;
+  --op-color-surface: #1f1f1f;
+  --op-color-accent: rgba(255, 107, 53, 0.1);
+  --op-color-text-primary: #ffffff;
+  --op-color-text-secondary: #b8b8b8;
+  --op-color-border: rgba(255, 107, 53, 0.3);
+  --op-shadow-glow: 0 0 30px rgba(255, 107, 53, 0.3);
+  --op-font-main: "Inter", sans-serif;
+  --op-font-display: "Poppins", sans-serif;
+  --op-border-radius: 16px;
+  --op-transition: all 0.3s ease;
+}
+
+
+.op-offer-container {
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: 40px 20px;
+  font-family: var(--op-font-main);
+  background-color: var(--op-color-background);
+  color: var(--op-color-text-primary);
+}
+
+
+.op-offer-header {
+  text-align: center;
+  padding: 60px 20px;
+  margin-bottom: 48px;
+  border-radius: var(--op-border-radius);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 107, 53, 0.05),
+    rgba(255, 149, 0, 0.05)
+  );
+  border: 1px solid var(--op-color-border);
+}
+.op-offer-header h1 {
+  font-family: var(--op-font-display);
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--op-color-primary), #ff9500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+}
+.op-offer-header p {
+  font-size: 1.1rem;
+  color: var(--op-color-text-secondary);
+  max-width: 600px;
+  margin-inline: auto;
+}
+
+.op-offer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 32px;
+}
+
+.op-offer-card {
+  background-color: var(--op-color-surface);
+  border-radius: var(--op-border-radius);
+  border: 1px solid var(--op-color-border);
+  overflow: hidden;
+  transition: var(--op-transition);
+  display: flex;
+  flex-direction: column;
+}
+.op-offer-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+
+.op-offer-image-section {
+  position: relative;
+  overflow: hidden;
+}
+.op-offer-image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.op-offer-card:hover .op-offer-image {
+  transform: scale(1.05);
+}
+.op-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  transition: var(--op-transition);
+}
+.op-offer-card:hover .op-image-overlay {
+  opacity: 1;
+}
+.op-view-details-btn {
+  padding: 10px 20px;
+  background-color: var(--op-color-primary);
+  color: var(--op-color-text-primary);
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transform: translateY(20px);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.op-offer-card:hover .op-view-details-btn {
+  transform: translateY(0);
+}
+.op-view-details-btn:hover {
+  background-color: var(--op-color-primary-hover);
+}
+
+
+.op-offer-card .op-offer-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.op-offer-header-info {
+  margin-bottom: 12px;
+}
+.op-offer-card .op-offer-title {
+  font-family: var(--op-font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--op-color-text-primary);
+}
+.op-offer-subtitle-text {
+  font-size: 1rem;
+  color: var(--op-color-primary);
+  font-weight: 500;
+}
+.op-offer-description {
+  color: var(--op-color-text-secondary);
+  line-height: 1.6;
+  flex-grow: 1;
+  margin-bottom: 20px;
+}
+
+/* Badges */
+.op-offer-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+.op-discount-badge,
+.op-category-badge {
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+  backdrop-filter: blur(5px);
+}
+.op-discount-badge {
+  background-color: rgba(255, 107, 53, 0.8); 
+}
+.op-category-badge {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+
+.op-offer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--op-color-text-secondary);
+  margin-bottom: 24px;
+}
+.op-offer-validity,
+.op-offer-card-type {
+  display: flex;
+  align-items: center;
+}
+.op-offer-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+}
+.op-claim-offer-btn,
+.op-learn-more-btn {
+  flex-grow: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--op-transition);
+  border: 2px solid;
+}
+.op-claim-offer-btn {
+  background-color: var(--op-color-primary);
+  border-color: var(--op-color-primary);
+  color: white;
+}
+.op-claim-offer-btn:hover {
+  background-color: var(--op-color-primary-hover);
+  border-color: var(--op-color-primary-hover);
+}
+.op-learn-more-btn {
+  background-color: transparent;
+  border-color: var(--op-color-border);
+  color: var(--op-color-text-primary);
+}
+.op-learn-more-btn:hover {
+  background-color: var(--op-color-accent);
+  border-color: var(--op-color-primary);
+}
+
+.op-offer-cta {
+  text-align: center;
+  padding: 60px 20px;
+  margin-top: 60px;
+  border-radius: var(--op-border-radius);
+  background-color: var(--op-color-surface);
+  border: 1px solid var(--op-color-border);
+}
+.op-cta-content h2 {
+  font-family: var(--op-font-display);
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+.op-cta-content p {
+  color: var(--op-color-text-secondary);
+  margin-bottom: 24px;
+}
+.op-newsletter-btn {
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: var(--op-transition);
+  background: linear-gradient(
+    135deg,
+    var(--op-color-primary),
+    var(--op-color-primary-hover)
+  );
+  color: white;
+}
+.op-newsletter-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--op-shadow-glow);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+  .op-offer-header h1 {
+    font-size: 2.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .op-offer-header h1 {
+    font-size: 2rem;
+  }
+  .op-offer-grid {
+    grid-template-columns: 1fr;
+  }
+}

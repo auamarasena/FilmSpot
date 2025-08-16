@@ -1,151 +1,196 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
+import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 import "./SeatSelection.css";
-
-const mockShowtime = {
-  _id: "mock-showtime-1",
-  screenId: { _id: "mock-screen-1" },
-  seatPrice: 1500.0,
-  start_date: new Date().toISOString(),
-  start_time: "07:00 PM",
-};
-
-const mockScreen = {
-  _id: "mock-screen-1",
-  theatreId: "mock-theatre-1",
-  format: "4K Dolby Atmos",
-};
-
-const mockTheatre = {
-  _id: "mock-theatre-1",
-  location: "Colombo City Center",
-};
-
-const generateMockSeats = () => {
-  const seats = [];
-  const rows = ["A", "B", "C", "D", "E"];
-  for (const row of rows) {
-    for (let i = 1; i <= 10; i++) {
-      let status = "available";
-      if ((row === "C" && (i === 5 || i === 6)) || (row === "D" && i > 7)) {
-        status = "booked";
-      }
-      seats.push({
-        _id: `${row}${i}`,
-        seatNumber: `${row}${i}`,
-        status: status,
-      });
-    }
-  }
-  return seats;
-};
-
-const mockSeatsData = generateMockSeats();
 
 const SeatSelection = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [seats, setSeats] = useState([]);
+  const [seats, setSeats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showtime, setShowtime] = useState(null);
-  const [theatreLocation, setTheatreLocation] = useState("");
-  const [screenFormat, setScreenFormat] = useState("");
-  const navigate = useNavigate();
 
-  const showtimeId = mockShowtime._id;
-  const movieTitle = "Inception";
-  const userId = localStorage.getItem("userId") || "mockUser123";
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+
+
+  const ws = useRef(null);
+
+  const queryParams = new URLSearchParams(location.search);
+  const showtimeId = queryParams.get("showtimeId");
 
   useEffect(() => {
-    const fetchSeatAndShowtimeData = () => {
+    if (!showtimeId) {
+      setError("No showtime selected. Please go back and pick a time.");
+      setLoading(false);
+      return;
+    }
+    const fetchSeatAndShowtimeData = async () => {
       setLoading(true);
       setError(null);
-      setTimeout(() => {
-        try {
-          if (showtimeId === mockShowtime._id) {
-            setShowtime(mockShowtime);
-            setScreenFormat(mockScreen.format);
-            setTheatreLocation(mockTheatre.location);
+      try {
+        const [showtimeRes, seatsRes] = await Promise.all([
+          api.get(`/showtimes/${showtimeId}`),
+          api.get(`/showtimes/${showtimeId}/seats`),
+        ]);
 
-            const groupedSeats = mockSeatsData.reduce((acc, seat) => {
-              const row = seat.seatNumber.charAt(0);
-              if (!acc[row]) acc[row] = [];
-              acc[row].push({
-                id: seat._id,
-                number: seat.seatNumber,
-                status: seat.status,
-              });
-              return acc;
-            }, {});
-            setSeats(groupedSeats);
-          } else {
-            throw new Error("Showtime not found.");
-          }
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-        }
-      }, 1500);
+        setShowtime(showtimeRes.data);
+
+        const groupedSeats = seatsRes.data.reduce((acc, seat) => {
+          const row = seat.seatNumber.charAt(0);
+          if (!acc[row]) acc[row] = [];
+          acc[row].push({
+            id: seat._id, 
+            number: seat.seatNumber,
+            status: seat.status,
+          });
+          return acc;
+        }, {});
+        setSeats(groupedSeats);
+      } catch (err) {
+        setError("Failed to load seating information. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchSeatAndShowtimeData();
+
+    // 2. Establish WebSocket connection
+    ws.current = new WebSocket("ws://localhost:5001");
+
+    ws.current.onopen = () => {
+      console.log("WebSocket connection established");
+      ws.current.send(
+        JSON.stringify({
+          action: "join_showtime_room",
+          showtimeId: showtimeId,
+        })
+      );
+    };
+
+    // 3. Listen for messages from the server
+    ws.current.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+
+      // Update the UI in real-time 
+      if (message.type === "seat_locked" || message.type === "seat_unlocked") {
+        const newStatus =
+          message.type === "seat_locked" ? "locked" : "available";
+
+        setSeats((prevSeats) => {
+          const updatedSeats = JSON.parse(JSON.stringify(prevSeats)); 
+          for (const row in updatedSeats) {
+            const seatIndex = updatedSeats[row].findIndex(
+              (s) => s.id === message.showtimeSeatId
+            );
+            if (seatIndex !== -1) {
+              updatedSeats[row][seatIndex].status = newStatus;
+              break; // Seat found and updated, exit loop
+            }
+          }
+          return updatedSeats;
+        });
+      }
+    };
+
+    ws.current.onclose = () => console.log("WebSocket connection closed");
+    ws.current.onerror = (error) => console.error("WebSocket error:", error);
+
+    return () => {
+      if (ws.current) {
+        ws.current.close();
+      }
+    };
   }, [showtimeId]);
 
-  const rows = Object.keys(seats).sort();
+  // Effect to unlock seats if the user navigates away
+  useEffect(() => {
+    return () => {
+      if (
+        ws.current?.readyState === WebSocket.OPEN &&
+        selectedSeats.length > 0
+      ) {
+        selectedSeats.forEach((seat) => {
+          ws.current.send(
+            JSON.stringify({ action: "unlock_seat", showtimeSeatId: seat.id })
+          );
+        });
+      }
+    };
+  }, [selectedSeats]);
 
   const handleSeatClick = (seatId, seatNumber, status) => {
-    if (status === "booked") return;
-    setSelectedSeats((prev) => {
-      const isSelected = prev.some((s) => s.id === seatId);
-      if (isSelected) {
-        return prev.filter((s) => s.id !== seatId);
-      } else {
-        return [...prev, { id: seatId, number: seatNumber }];
-      }
+    const isCurrentlySelected = selectedSeats.some((s) => s.id === seatId);
+
+    // Prevent clicking on seats that are already booked or locked by another user
+    if (status === "booked" || (status === "locked" && !isCurrentlySelected))
+      return;
+
+    // Send a message to the backend via WebSocket to lock or unlock the seat
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      ws.current.send(
+        JSON.stringify({
+          action: isCurrentlySelected ? "unlock_seat" : "lock_seat",
+          showtimeSeatId: seatId,
+        })
+      );
+    }
+
+    // Update our local selection state to reflect the change immediately
+    setSelectedSeats((prev) =>
+      isCurrentlySelected
+        ? prev.filter((s) => s.id !== seatId)
+        : [...prev, { id: seatId, number: seatNumber }]
+    );
+  };
+
+  const handleContinue = () => {
+    if (!isAuthenticated) {
+      navigate("/sign-in", { state: { from: location } });
+      return;
+    }
+    navigate("/payment", {
+      state: {
+        selectedSeats: selectedSeats.map((seat) => seat.number),
+        showtimeSeatIds: selectedSeats.map((seat) => seat.id),
+        totalPrice: calculatePrice,
+        showtimeDetails: showtime,
+        movieTitle: showtime.movieId.title,
+      },
     });
   };
 
   const calculatePrice = showtime
     ? selectedSeats.length * showtime.seatPrice
     : 0;
-  const formattedShowtimeDate = showtime
-    ? format(new Date(showtime.start_date), "dd MMM yyyy")
-    : "Loading...";
-  const formattedShowtimeTime = showtime ? showtime.start_time : "Loading...";
 
-  const handleContinue = () => {
-    navigate("/payment", {
-      state: {
-        selectedSeats: selectedSeats.map((seat) => seat.number),
-        showtimeSeatIds: selectedSeats.map((seat) => seat.id),
-        totalPrice: calculatePrice,
-        selectedDate: formattedShowtimeDate,
-        selectedTime: formattedShowtimeTime,
-        showtimeId: showtimeId,
-        movieTitle: movieTitle,
-        userId: userId,
-      },
-    });
-  };
-
-  const handleBack = () => window.history.back();
-
-  if (loading) {
+  if (loading)
     return <div className='seat-selection-loading'>Loading Seats...</div>;
-  }
-  if (error) {
-    return <div className='seat-selection-error'>Error: {error}</div>;
-  }
+  if (error) return <div className='seat-selection-error'>Error: {error}</div>;
+  if (!showtime)
+    return (
+      <div className='seat-selection-error'>
+        Showtime data could not be loaded.
+      </div>
+    );
+
+  const rows = Object.keys(seats).sort();
+  const formattedShowtimeDate = format(
+    new Date(showtime.start_date),
+    "EEEE, dd MMM yyyy"
+  );
 
   return (
     <div className='seat-selection'>
       <div className='header-ss'>
-        <h1>{movieTitle}</h1>
+        <h1>{showtime.movieId.title}</h1>
         <p>
-          {theatreLocation} | {screenFormat} | {formattedShowtimeDate} |{" "}
-          {formattedShowtimeTime}
+          {showtime.screenId.theatreId.location} | {showtime.screenId.format} |{" "}
+          {formattedShowtimeDate} | {showtime.start_time}
         </p>
       </div>
       <div className='screen'>SCREEN THIS WAY</div>
@@ -157,6 +202,8 @@ const SeatSelection = () => {
               const seatClass = `seat ${
                 seat.status === "booked"
                   ? "booked"
+                  : seat.status === "locked"
+                  ? "locked"
                   : isSelected
                   ? "selected"
                   : "available"
@@ -185,6 +232,10 @@ const SeatSelection = () => {
           <span>Selected</span>
         </div>
         <div className='legend-item'>
+          <div className='legend-seat legend-locked'></div>
+          <span>Unavailable</span>
+        </div>
+        <div className='legend-item'>
           <div className='legend-seat legend-booked'></div>
           <span>Booked</span>
         </div>
@@ -199,12 +250,12 @@ const SeatSelection = () => {
       </div>
       <div className='actions'>
         <button
-          className='continue'
+          className='continue btn btn-primary'
           onClick={handleContinue}
           disabled={selectedSeats.length === 0}>
-          Continue
+          {isAuthenticated ? "Continue to Payment" : "Login to Continue"}
         </button>
-        <button className='back' onClick={handleBack}>
+        <button className='back btn btn-secondary' onClick={() => navigate(-1)}>
           Back
         </button>
       </div>

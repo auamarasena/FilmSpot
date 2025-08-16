@@ -1,14 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./Navbar.css";
 
-const Navbar = ({ isLoggedIn, handleLogout }) => {
+const Navbar = () => {
+  const { isAuthenticated, user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const toggleDropdown = () => setShowDropdown((prev) => !prev);
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
+
+  const handleLogout = () => {
+    logout();
+    setShowDropdown(false);
+    setIsMobileMenuOpen(false);
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -20,6 +28,13 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // When the user navigates to a new page, close the mobile menu
+  const location = useLocation();
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setShowDropdown(false);
+  }, [location.pathname]);
 
   return (
     <nav className='nb-navbar'>
@@ -54,16 +69,17 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
             </span>
           </button>
 
-          {/* User / Auth */}
           <div className='nb-user-section'>
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <div className='nb-profile-section' ref={dropdownRef}>
                 <div className='nb-profile-wrapper' onClick={toggleDropdown}>
                   <div className='nb-profile-circle'>
-                    <span className='nb-profile-initial'>A</span>
+                    <span className='nb-profile-initial'>
+                      {user?.firstName?.charAt(0).toUpperCase()}
+                    </span>
                   </div>
                   <div className='nb-profile-info'>
-                    <span className='nb-profile-name'>Anuda</span>
+                    <span className='nb-profile-name'>{user?.firstName}</span>
                     <span className='nb-profile-status'>Online</span>
                   </div>
                   <svg
@@ -85,24 +101,22 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
                 {showDropdown && (
                   <div className='nb-dropdown-menu'>
                     <div className='nb-dropdown-header'>
-                      <div className='nb-dropdown-avatar'>A</div>
+                      <div className='nb-dropdown-avatar'>
+                        {user?.firstName?.charAt(0).toUpperCase()}
+                      </div>
                       <div className='nb-dropdown-user-info'>
                         <span className='nb-dropdown-name'>
-                          Anuda Amarasena
+                          {user?.firstName} {user?.lastName}
                         </span>
-                        <span className='nb-dropdown-email'>
-                          Anuda@example.com
-                        </span>
+                        <span className='nb-dropdown-email'>{user?.email}</span>
                       </div>
                     </div>
                     <div className='nb-dropdown-divider'></div>
                     <div className='nb-dropdown-links'>
-                      <Link to='/Bookinghistory' className='nb-dropdown-link'>
+                      <Link to='/booking-history' className='nb-dropdown-link'>
                         My Bookings
                       </Link>
-                      <Link
-                        to='/ChangePasswordForm'
-                        className='nb-dropdown-link'>
+                      <Link to='/change-pw' className='nb-dropdown-link'>
                         Change Password
                       </Link>
                       <div className='nb-dropdown-divider'></div>
@@ -131,32 +145,18 @@ const Navbar = ({ isLoggedIn, handleLogout }) => {
         {/* Mobile Menu */}
         <div className={`nb-mobile-menu ${isMobileMenuOpen ? "nb-open" : ""}`}>
           <div className='nb-mobile-nav-links'>
-            <MobileNavLink href='/' onClick={() => setIsMobileMenuOpen(false)}>
-              Home
-            </MobileNavLink>
-            <MobileNavLink
-              href='/movies'
-              onClick={() => setIsMobileMenuOpen(false)}>
-              Movies
-            </MobileNavLink>
-            <MobileNavLink
-              href='/offer'
-              onClick={() => setIsMobileMenuOpen(false)}>
-              Offers
-            </MobileNavLink>
-            <MobileNavLink
-              href='/about'
-              onClick={() => setIsMobileMenuOpen(false)}>
-              About Us
-            </MobileNavLink>
+            <MobileNavLink href='/'>Home</MobileNavLink>
+            <MobileNavLink href='/movies'>Movies</MobileNavLink>
+            <MobileNavLink href='/offer'>Offers</MobileNavLink>
+            <MobileNavLink href='/about'>About Us</MobileNavLink>
           </div>
 
-          {!isLoggedIn && (
+          {!isAuthenticated && (
             <div className='nb-mobile-auth'>
-              <Link to='/sign-in' onClick={() => setIsMobileMenuOpen(false)}>
+              <Link to='/sign-in'>
                 <button className='nb-mobile-login-btn'>Sign In</button>
               </Link>
-              <Link to='/reg-form' onClick={() => setIsMobileMenuOpen(false)}>
+              <Link to='/reg-form'>
                 <button className='nb-mobile-signup-btn'>Get Started</button>
               </Link>
             </div>
@@ -177,14 +177,13 @@ const NavLink = ({ href, children }) => {
   );
 };
 
-const MobileNavLink = ({ href, children, onClick }) => {
+const MobileNavLink = ({ href, children }) => {
   const location = useLocation();
   const isActive = location.pathname === href;
   return (
     <Link
       to={href}
-      className={`nb-mobile-nav-link ${isActive ? "nb-active" : ""}`}
-      onClick={onClick}>
+      className={`nb-mobile-nav-link ${isActive ? "nb-active" : ""}`}>
       {children}
     </Link>
   );
