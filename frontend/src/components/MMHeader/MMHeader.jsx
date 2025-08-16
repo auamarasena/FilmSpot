@@ -1,56 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Select from "react-select";
+import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext"; 
 import "./MMHeader.css";
 
-const mockInitialMovies = [
-  {
-    _id: "movie-1",
-    title: "Dune: Part Two",
-    description:
-      "Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.",
-    cast: "Timothée Chalamet, Zendaya, Rebecca Ferguson",
-    director: "Denis Villeneuve",
-    releaseDate: "2024-03-01",
-    duration: "2h 46m",
-    rating: "PG-13",
-    genres: "sci-fi,action",
-    imdbRating: "4.8",
-    trailerURL: "https://www.youtube.com/watch?v=U2Qp5pL3ovA",
-    moviePoster:
-      "https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8soXRmfuXb.jpg",
-    moviePosterHomepage:
-      "https://image.tmdb.org/t/p/original/8b8R8l88Qje9dn9OE8soXRmfuXb.jpg",
-  },
-  {
-    _id: "movie-2",
-    title: "Oppenheimer",
-    description:
-      "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.",
-    cast: "Cillian Murphy, Emily Blunt, Matt Damon",
-    director: "Christopher Nolan",
-    releaseDate: "2023-07-21",
-    duration: "3h 0m",
-    rating: "R",
-    genres: "drama,thriller",
-    imdbRating: "4.5",
-    trailerURL: "https://www.youtube.com/watch?v=uYPbbksJxIg",
-    moviePoster:
-      "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
-    moviePosterHomepage:
-      "https://image.tmdb.org/t/p/original/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
-  },
+// Define genre options for the dropdown
+const genreOptions = [
+  { value: "Action", label: "Action" },
+  { value: "Adventure", label: "Adventure" },
+  { value: "Animation", label: "Animation" },
+  { value: "Comedy", label: "Comedy" },
+  { value: "Crime", label: "Crime" },
+  { value: "Drama", label: "Drama" },
+  { value: "Fantasy", label: "Fantasy" },
+  { value: "History", label: "History" },
+  { value: "Horror", label: "Horror" },
+  { value: "Music", label: "Music" },
+  { value: "Mystery", label: "Mystery" },
+  { value: "Romance", label: "Romance" },
+  { value: "Sci-Fi", label: "Science Fiction" },
+  { value: "Thriller", label: "Thriller" },
+  { value: "War", label: "War" },
+  { value: "Western", label: "Western" },
 ];
 
 const MMHeader = () => {
+  const { user } = useAuth(); // Get user from context to check for admin role
   const [movies, setMovies] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(null);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [formData, setFormData] = useState({
+
+  const initialFormData = {
     title: "",
     description: "",
     cast: "",
@@ -58,47 +42,88 @@ const MMHeader = () => {
     releaseDate: "",
     duration: "",
     rating: "",
-    genres: "",
     imdbRating: "",
     trailerURL: "",
     moviePoster: "",
     moviePosterHomepage: "",
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
   const [selectedGenres, setSelectedGenres] = useState([]);
 
-  useEffect(() => {
+  const fetchMovies = useCallback(async () => {
     setLoading(true);
-    setTimeout(() => {
-      setMovies(mockInitialMovies);
+    setError(null);
+    try {
+      const { data } = await api.get("http://localhost:5001/api/movies");
+      setMovies(data);
+    } catch (err) {
+      setError("Failed to fetch movies from the server.");
+      console.error("Fetch movies error:", err);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   }, []);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    fetchMovies();
+  }, [fetchMovies]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user || user.role !== "admin") {
+      setError("Authorization Error: Only admins can modify movie data.");
+      return;
+    }
     setSubmitting(true);
-    setTimeout(() => {
+    setError(null);
+
+    const movieData = {
+      ...formData,
+      genres: selectedGenres.map((g) => g.value),
+      cast:
+        typeof formData.cast === "string"
+          ? formData.cast.split(",").map((item) => item.trim())
+          : [],
+    };
+
+    try {
       if (editingMovie) {
-        const updatedMovie = { ...editingMovie, ...formData };
-        setMovies((prev) =>
-          prev.map((m) => (m._id === editingMovie._id ? updatedMovie : m))
+        // UPDATE existing movie
+        await axios.put(
+          `http://localhost:5001/api/movies/${editingMovie._id}`,
+          movieData
         );
       } else {
-        const newMovie = { ...formData, _id: `movie-${Date.now()}` };
-        setMovies((prev) => [...prev, newMovie]);
+        // CREATE new movie
+        await api.post("http://localhost:5001/api/movies", movieData);
       }
       handleCloseModal();
+      fetchMovies(); // Refresh the movie list
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "An error occurred. Please try again."
+      );
+    } finally {
       setSubmitting(false);
-    }, 1000);
+    }
   };
 
-  const handleDeleteMovie = (movieId) => {
-    if (!window.confirm("Are you sure you want to delete this movie?")) return;
-    setDeleting(movieId);
-    setTimeout(() => {
-      setMovies((prev) => prev.filter((m) => m._id !== movieId));
-      setDeleting(null);
-    }, 1000);
+  const handleDeleteMovie = async (movieId) => {
+    if (!user || user.role !== "admin") {
+      setError("Authorization Error: Only admins can delete movies.");
+      return;
+    }
+    if (
+      !window.confirm("Are you sure you want to permanently delete this movie?")
+    )
+      return;
+
+    try {
+      await axios.delete(`http://localhost:5001/api/movies/${movieId}`);
+      fetchMovies(); // Refresh the list after deleting
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete movie.");
+    }
   };
 
   const handleEditMovie = (movie) => {
@@ -106,64 +131,42 @@ const MMHeader = () => {
     setFormData({
       title: movie.title || "",
       description: movie.description || "",
-      cast: movie.cast || "",
+      cast: Array.isArray(movie.cast) ? movie.cast.join(", ") : "",
       director: movie.director || "",
       releaseDate: movie.releaseDate ? movie.releaseDate.split("T")[0] : "",
       duration: movie.duration || "",
       rating: movie.rating || "",
-      genres: movie.genres || "",
       imdbRating: movie.imdbRating || "",
       trailerURL: movie.trailerURL || "",
       moviePoster: movie.moviePoster || "",
       moviePosterHomepage: movie.moviePosterHomepage || "",
     });
     const movieGenres = movie.genres
-      ? movie.genres
-          .split(",")
-          .map(
-            (g) =>
-              genreOptions.find((opt) => opt.value === g.trim()) || {
-                value: g.trim(),
-                label: g.trim(),
-              }
-          )
+      ? movie.genres.map((g) => ({ value: g, label: g }))
       : [];
     setSelectedGenres(movieGenres);
     setShowForm(true);
+    setError(null);
   };
 
   const handleAddMovie = () => {
     setEditingMovie(null);
-    setFormData({
-      title: "",
-      description: "",
-      cast: "",
-      director: "",
-      releaseDate: "",
-      duration: "",
-      rating: "",
-      genres: "",
-      imdbRating: "",
-      trailerURL: "",
-      moviePoster: "",
-      moviePosterHomepage: "",
-    });
+    setFormData(initialFormData);
     setSelectedGenres([]);
     setShowForm(true);
+    setError(null);
   };
 
-  const handleCloseModal = () => setShowForm(false);
+  const handleCloseModal = () => {
+    setShowForm(false);
+    setEditingMovie(null);
+    setError(null);
+  };
+
   const handleInputChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  const handleGenreChange = (selectedOptions) => {
+  const handleGenreChange = (selectedOptions) =>
     setSelectedGenres(selectedOptions || []);
-    setFormData({
-      ...formData,
-      genres: selectedOptions
-        ? selectedOptions.map((o) => o.value).join(",")
-        : "",
-    });
-  };
 
   const filteredMovies = movies.filter(
     (movie) =>
@@ -171,25 +174,10 @@ const MMHeader = () => {
       (movie.director || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const genreOptions = [
-    { value: "action", label: "Action" },
-    { value: "animation", label: "Animation" },
-    { value: "comedy", label: "Comedy" },
-    { value: "crime", label: "Crime" },
-    { value: "drama", label: "Drama" },
-    { value: "fantasy", label: "Fantasy" },
-    { value: "horror", label: "Horror" },
-    { value: "romance", label: "Romance" },
-    { value: "sci-fi", label: "Science Fiction" },
-    { value: "thriller", label: "Thriller" },
-  ];
-
-  const customSelectStyles = {
-    /* Style object from previous answer */
-  };
-
   if (loading)
-    return <div className='mm-loading-container'>Loading Movies...</div>;
+    return (
+      <div className='mm-loading-container'>Loading Movie Management...</div>
+    );
 
   return (
     <div className='mm-container'>
@@ -199,12 +187,21 @@ const MMHeader = () => {
           Add Movie
         </button>
       </div>
+
+      {error && !showForm && (
+        <div
+          className='mm-error-message'
+          style={{ textAlign: "center", margin: "20px" }}>
+          {error}
+        </div>
+      )}
+
       {!showForm ? (
         <>
           <div className='mm-search-container'>
             <input
               type='text'
-              placeholder='Search movies...'
+              placeholder='Search movies by title or director...'
               className='mm-search-input'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -220,7 +217,6 @@ const MMHeader = () => {
               <div className='mm-movies-grid'>
                 {filteredMovies.map((movie) => (
                   <div key={movie._id} className='mm-movie-card'>
-                    {/* UPDATED: Image is now displayed from movie data */}
                     <img
                       src={
                         movie.moviePoster ||
@@ -240,9 +236,8 @@ const MMHeader = () => {
                         </button>
                         <button
                           className='mm-delete-btn'
-                          onClick={() => handleDeleteMovie(movie._id)}
-                          disabled={deleting === movie._id}>
-                          {deleting === movie._id ? "Deleting..." : "Delete"}
+                          onClick={() => handleDeleteMovie(movie._id)}>
+                          Delete
                         </button>
                       </div>
                     </div>
@@ -261,7 +256,6 @@ const MMHeader = () => {
             </button>
             {error && <div className='mm-error-message'>{error}</div>}
             <form onSubmit={handleSubmit} className='mm-form'>
-              {/* --- FORM FIELDS --- */}
               <input
                 type='text'
                 placeholder='Title'
@@ -275,6 +269,7 @@ const MMHeader = () => {
                 name='description'
                 value={formData.description}
                 onChange={handleInputChange}
+                required
               />
               <div className='mm-form-row'>
                 <input
@@ -290,6 +285,7 @@ const MMHeader = () => {
                   name='director'
                   value={formData.director}
                   onChange={handleInputChange}
+                  required
                 />
               </div>
               <div className='mm-form-row'>
@@ -298,22 +294,41 @@ const MMHeader = () => {
                   name='releaseDate'
                   value={formData.releaseDate}
                   onChange={handleInputChange}
+                  required
                 />
                 <input
                   type='text'
-                  placeholder='Duration (e.g., 2h 30m)'
+                  placeholder='Duration (e.g., 148 min)'
                   name='duration'
                   value={formData.duration}
                   onChange={handleInputChange}
+                  required
                 />
               </div>
-              {/* --- NEW: IMAGE URL INPUTS --- */}
+              <div className='mm-form-row'>
+                <input
+                  type='text'
+                  placeholder='Rating (e.g., PG-13)'
+                  name='rating'
+                  value={formData.rating}
+                  onChange={handleInputChange}
+                />
+                <input
+                  type='number'
+                  step='0.1'
+                  placeholder='IMDb Score (e.g., 8.8)'
+                  name='imdbRating'
+                  value={formData.imdbRating}
+                  onChange={handleInputChange}
+                />
+              </div>
               <input
                 type='text'
                 placeholder='Poster URL (for cards)'
                 name='moviePoster'
                 value={formData.moviePoster}
                 onChange={handleInputChange}
+                required
               />
               <input
                 type='text'
@@ -321,8 +336,8 @@ const MMHeader = () => {
                 name='moviePosterHomepage'
                 value={formData.moviePosterHomepage}
                 onChange={handleInputChange}
+                required
               />
-
               <input
                 type='text'
                 placeholder='Trailer URL (YouTube)'
@@ -335,10 +350,10 @@ const MMHeader = () => {
                 options={genreOptions}
                 value={selectedGenres}
                 onChange={handleGenreChange}
-                styles={customSelectStyles}
                 placeholder='Select genres...'
+                className='mm-genre-select'
+                classNamePrefix='react-select'
               />
-
               <div className='mm-form-actions'>
                 <button
                   type='button'

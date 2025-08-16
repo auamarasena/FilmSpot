@@ -1,49 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Search, Filter, X, ChevronDown } from "lucide-react";
 import "./MovieListSearchbar.css";
 
-const mockGenres = [
-  "Action",
-  "Adventure",
-  "Animation",
-  "Comedy",
-  "Crime",
-  "Drama",
-  "Fantasy",
-  "History",
-  "Horror",
-  "Music",
-  "Mystery",
-  "Romance",
-  "Sci-Fi",
-  "Thriller",
-  "War",
-  "Western",
-];
-
-const MovieListSearchBar = ({ onSearch }) => {
+const MovieListSearchBar = ({ onSearch, allMovies = [] }) => {
   const [searchTitle, setSearchTitle] = useState("");
   const [genre, setGenre] = useState("");
-  const [genres, setGenres] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    const fetchGenres = () => {
-      setLoading(true);
-      setTimeout(() => {
-        try {
-          setGenres(mockGenres);
-        } catch (error) {
-          console.error("Error loading mock genres:", error);
-        } finally {
-          setLoading(false);
-        }
-      }, 1000);
-    };
-    fetchGenres();
-  }, []);
+  const genres = useMemo(() => {
+    const genreSet = new Set();
+    allMovies.forEach((movie) => {
+      movie.genres.forEach((g) => genreSet.add(g));
+    });
+    // Convert the Set to an array and sort it alphabetically
+    return Array.from(genreSet).sort();
+  }, [allMovies]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -68,6 +40,7 @@ const MovieListSearchBar = ({ onSearch }) => {
     onSearch("", "");
   };
 
+  // Allow searching by pressing Enter
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleApply();
@@ -79,10 +52,20 @@ const MovieListSearchBar = ({ onSearch }) => {
     setIsDropdownOpen(false);
   };
 
+  const handleClearSingleFilter = (filterType) => {
+    if (filterType === "title") {
+      setSearchTitle("");
+      onSearch("", genre);
+    }
+    if (filterType === "genre") {
+      setGenre("");
+      onSearch(searchTitle, "");
+    }
+  };
+
   return (
     <div className='mlsb-container'>
       <div className='mlsb-search-bar'>
-        {/* Search Input */}
         <div className='mlsb-search-group'>
           <div className='mlsb-search-input-wrapper'>
             <Search className='mlsb-search-icon' size={20} />
@@ -104,7 +87,6 @@ const MovieListSearchBar = ({ onSearch }) => {
           </div>
         </div>
 
-        {/* Genre Filter */}
         <div className='mlsb-filter-group' ref={dropdownRef}>
           <div className='mlsb-dropdown-wrapper'>
             <button
@@ -142,47 +124,41 @@ const MovieListSearchBar = ({ onSearch }) => {
                     onClick={() => handleGenreSelect("")}>
                     All Genres
                   </button>
-                  {loading ? (
-                    <div className='mlsb-loading'>Loading genres...</div>
-                  ) : (
-                    genres.map((g) => (
-                      <button
-                        key={g}
-                        className={`mlsb-dropdown-item ${
-                          genre === g ? "mlsb-selected" : ""
-                        }`}
-                        onClick={() => handleGenreSelect(g)}>
-                        {g}
-                      </button>
-                    ))
-                  )}
+                  {genres.map((g) => (
+                    <button
+                      key={g}
+                      className={`mlsb-dropdown-item ${
+                        genre === g ? "mlsb-selected" : ""
+                      }`}
+                      onClick={() => handleGenreSelect(g)}>
+                      {g}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className='mlsb-actions'>
           <button onClick={handleApply} className='mlsb-apply-btn'>
             <Search size={16} /> Search
           </button>
           {(searchTitle || genre) && (
             <button onClick={handleClear} className='mlsb-clear-all-btn'>
-              <X size={16} /> Clear
+              <X size={16} /> Clear All
             </button>
           )}
         </div>
       </div>
 
-      {/* Active Filters Display */}
       {(searchTitle || genre) && (
         <div className='mlsb-active-filters'>
           <span className='mlsb-filter-label'>Active filters:</span>
           {searchTitle && (
             <div className='mlsb-filter-tag'>
               <span>Title: "{searchTitle}"</span>
-              <button onClick={() => setSearchTitle("")}>
+              <button onClick={() => handleClearSingleFilter("title")}>
                 <X size={14} />
               </button>
             </div>
@@ -190,7 +166,7 @@ const MovieListSearchBar = ({ onSearch }) => {
           {genre && (
             <div className='mlsb-filter-tag'>
               <span>Genre: {genre}</span>
-              <button onClick={() => setGenre("")}>
+              <button onClick={() => handleClearSingleFilter("genre")}>
                 <X size={14} />
               </button>
             </div>
