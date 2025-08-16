@@ -12,7 +12,6 @@
   --ad-border-color: rgba(255, 107, 53, 0.3);
   --ad-shadow-glow: 0 0 30px rgba(255, 107, 53, 0.3);
 
-  /* Typography & Sizing */
   --ad-font-main: "Inter", sans-serif;
   --ad-font-display: "Poppins", sans-serif;
   --ad-sidebar-width: 260px;
@@ -21,7 +20,6 @@
   --ad-transition: all 0.3s ease;
 }
 
-/* --- Base Layout --- */
 .admin-dashboard {
   display: flex;
   min-height: 100vh;
@@ -334,7 +332,7 @@
   width: 50px;
   height: 50px;
   border: 5px solid var(--ad-border-color);
-  border-top-color: var(--ad-color-primary); /* Orange spinner */
+  border-top-color: var(--ad-color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
