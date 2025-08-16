@@ -1,153 +1,93 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 import PaymentSummary from "./PaymentSummary";
 import PromoCodeSection from "./PromoCodeSection";
 import UserDetailsSection from "./UserDetailsSection";
 import PayPalPayment from "./PayPalPayment";
+import PayPalErrorBoundary from "./PayPalErrorBoundary";
 import "./PaymentPage.css";
 
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+
   const {
     selectedSeats,
     totalPrice,
-    selectedDate,
-    selectedTime,
     showtimeSeatIds,
-    showtimeId,
+    showtimeDetails,
     movieTitle,
-    userId,
   } = location.state || {};
 
   const [discountedPrice, setDiscountedPrice] = useState(totalPrice || 0);
-  const [userDetails, setUserDetails] = useState(null);
-  const [showtimeDetails, setShowtimeDetails] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Validate required data
-    if (!userId || !showtimeId || !selectedSeats || !totalPrice) {
-      setError("Missing required booking information");
-      setIsLoading(false);
-      return;
+    // Redirect if essential data is missing
+    if (!isAuthenticated || !totalPrice || !showtimeDetails) {
+      navigate("/");
     }
-
-    const fetchData = async () => {
-      try {
-        const [userResponse, showtimeResponse] = await Promise.all([
-          apiService.auth.getUserById(userId),
-          apiService.showtimes.getById(showtimeId),
-        ]);
-
-        setUserDetails(userResponse.data);
-        setShowtimeDetails(showtimeResponse.data);
-      } catch (error) {
-        const errorMessage = handleApiError(
-          error,
-          "Failed to fetch booking details"
-        );
-        setError(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [userId, showtimeId, selectedSeats, totalPrice]);
+  }, [isAuthenticated, totalPrice, showtimeDetails, navigate]);
 
   const handlePaymentSuccess = async (paymentDetails) => {
+    setIsLoading(true);
     try {
-      console.log("PaymentPage - Starting booking creation...");
-      console.log("PaymentPage - userDetails:", userDetails);
-      console.log("PaymentPage - showtimeDetails:", showtimeDetails);
-      console.log("PaymentPage - selectedSeats:", selectedSeats);
-      console.log("PaymentPage - paymentDetails:", paymentDetails);
-
-      // Create booking
       const bookingData = {
-        userId: userId,
-        showtimeId: showtimeId,
+        showtimeId: showtimeDetails._id,
         showtimeSeatIds: showtimeSeatIds,
       };
 
-      console.log("PaymentPage - bookingData to send:", bookingData);
+      const { data: newBooking } = await api.post("/bookings", bookingData);
 
-      const response = await apiService.bookings.create(bookingData);
-      const newBooking = response.data;
-
-      console.log("PaymentPage - newBooking created:", newBooking);
-
-      // Send confirmation email
-      await sendConfirmationEmail(
-        newBooking,
-        userDetails,
-        showtimeDetails,
-        paymentDetails
-      );
-
-      // Prepare navigation state
-      const navigationState = {
-        booking: newBooking,
-        movieTitle,
-        selectedDate,
-        selectedTime,
-        selectedSeats,
-        totalAmount: discountedPrice,
-        userDetails,
-        showtimeDetails,
-      };
-
-      console.log(
-        "PaymentPage - Navigating to BookingSuccess with state:",
-        navigationState
-      );
-
-      navigate("/BookingSuccess", {
-        state: navigationState,
+      navigate("/booking-success", {
+        replace: true,
+        state: {
+          booking: newBooking,
+          movieTitle,
+          selectedDate: new Date(showtimeDetails.start_date).toLocaleDateString(
+            "en-US",
+            { weekday: "short", month: "short", day: "numeric" }
+          ),
+          selectedTime: showtimeDetails.start_time,
+          selectedSeats,
+          totalAmount: newBooking.totalAmount,
+          userDetails: user,
+          showtimeDetails,
+        },
       });
-    } catch (error) {
-      console.error("Booking creation failed:", error);
-      throw new Error("Failed to create booking. Please contact support.");
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Failed to create booking. Please contact support."
+      );
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const sendConfirmationEmail = async (
-    booking,
-    userDetails,
-    showtimeDetails,
-    paymentDetails
-  ) => {
-    console.log("Sending confirmation email...", {
-      booking,
-      userDetails,
-      showtimeDetails,
-      paymentDetails,
-    });
   };
 
   if (isLoading) {
     return (
       <div className='payment-page'>
-        <div className='loading-container'>
-          <div className='loading-spinner'></div>
-          <p>Loading payment details...</p>
-        </div>
+        <div>Loading Payment...</div>
       </div>
     );
   }
-
   if (error) {
     return (
       <div className='payment-page'>
-        <div className='error-container'>
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={() => navigate(-1)} className='btn btn-primary'>
-            Go Back
-          </button>
-        </div>
+        <h2>Error</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
+  if (!showtimeDetails) {
+    return (
+      <div className='payment-page'>
+        <h2>Loading...</h2>
       </div>
     );
   }
@@ -158,32 +98,33 @@ const PaymentPage = () => {
         <div className='payment-header'>
           <h1 className='page-title'>Complete Your Booking</h1>
         </div>
-
         <PaymentSummary
           movieTitle={movieTitle}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
+          selectedDate={new Date(showtimeDetails.start_date).toLocaleDateString(
+            "en-US",
+            { weekday: "short", month: "short", day: "numeric" }
+          )}
+          selectedTime={showtimeDetails.start_time}
           selectedSeats={selectedSeats}
           totalPrice={discountedPrice}
           showtimeDetails={showtimeDetails}
         />
-
         <PromoCodeSection
           totalPrice={totalPrice}
           discountedPrice={discountedPrice}
           setDiscountedPrice={setDiscountedPrice}
         />
-
-        <UserDetailsSection userDetails={userDetails} />
-
-        <PayPalPayment
-          amount={discountedPrice}
-          movieTitle={movieTitle}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          selectedSeats={selectedSeats}
-          onPaymentSuccess={handlePaymentSuccess}
-        />
+        <UserDetailsSection userDetails={user} />
+        <PayPalErrorBoundary>
+          <PayPalPayment
+            amount={discountedPrice}
+            movieTitle={movieTitle}
+            selectedSeats={selectedSeats}
+            onPaymentSuccess={handlePaymentSuccess}
+            showtimeDetails={showtimeDetails}
+            showtimeSeatIds={showtimeSeatIds}
+          />
+        </PayPalErrorBoundary>
       </div>
     </div>
   );

@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext"; 
+
 import {
   Mail,
   Lock,
@@ -18,28 +21,43 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [signInStatus, setSignInStatus] = useState("idle");
+  const [signInStatus, setSignInStatus] = useState("idle"); 
+  const [error, setError] = useState(null); 
+
+
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setSignInStatus("submitting");
+    setError(null); // Clear previous errors
 
-    setTimeout(() => {
-      if (email === "user@example.com" && password === "password123") {
-        setSignInStatus("success");
-        setTimeout(() => {
-          navigate("/");
-        }, 1500);
-      } else {
-        setSignInStatus("error");
-        setTimeout(() => setSignInStatus("idle"), 3000);
-      }
-    }, 1500);
+    try {
+      const response = await api.post("http://localhost:5001/api/auth/login", {
+        email,
+        password,
+      });
+
+      setSignInStatus("success");
+
+      login(response.data);
+
+      // Redirect the user to the homepage after 1.5 seconds
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+    } catch (err) {
+      setSignInStatus("error");
+      const errorMessage =
+        err.response?.data?.message ||
+        "Sign in failed. Please check your credentials.";
+      setError(errorMessage);
+    }
   };
 
   return (
@@ -55,14 +73,12 @@ const SignIn = () => {
           <div className='hm-welcome'>
             <h2 className='hm-form-title'>Welcome Back</h2>
             <p className='hm-form-subtitle'>
-              Demo: <strong>user@example.com</strong> &{" "}
-              <strong>password123</strong>
+              Sign in to continue your movie journey
             </p>
           </div>
         </div>
 
         <form className='hm-form' onSubmit={handleSubmit}>
-          {/* Email Input */}
           <div className='hm-input-group'>
             <label htmlFor='email-input' className='hm-input-label'>
               Email
@@ -82,7 +98,6 @@ const SignIn = () => {
             </div>
           </div>
 
-          {/* Password Input */}
           <div className='hm-input-group'>
             <label htmlFor='password-input' className='hm-input-label'>
               Password
@@ -119,12 +134,13 @@ const SignIn = () => {
               <span className='hm-checkbox-mark'></span>
               <span className='hm-checkbox-text'>Remember me</span>
             </label>
-            <Link to='/forgot-password' className='hm-form-link'>
+            <Link
+              to='/forgot-password' 
+              className='hm-form-link'>
               Forgot password?
             </Link>
           </div>
 
-          {/* --- Status Messages --- */}
           {signInStatus === "submitting" && (
             <div className='hm-status hm-status-loading' role='status'>
               <Loader className='hm-status-icon hm-spinning' size={16} />
@@ -140,7 +156,7 @@ const SignIn = () => {
           {signInStatus === "error" && (
             <div className='hm-status hm-status-error' role='alert'>
               <AlertCircle className='hm-status-icon' size={16} />
-              <span>Sign in failed. Please check your credentials.</span>
+              <span>{error}</span>
             </div>
           )}
 
@@ -167,7 +183,6 @@ const SignIn = () => {
         </div>
       </div>
 
-      {/* Background decoration */}
       <div className='hm-form-background'>
         <div className='hm-bg-circle hm-bg-circle-1'></div>
         <div className='hm-bg-circle hm-bg-circle-2'></div>

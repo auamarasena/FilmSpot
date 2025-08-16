@@ -37,7 +37,7 @@
 
 .hm-form-container {
   width: 100%;
-  max-width: 450px;
+  max-width: 500px;
   background: var(--color-surface);
   border-radius: var(--border-radius-large);
   border: 1px solid var(--color-border);
@@ -79,27 +79,31 @@
   font-size: 0.9rem;
   line-height: 1.5;
 }
-.hm-form-subtitle strong {
-  color: var(--color-primary);
-  font-weight: 600;
-}
 
-/* --- Form Elements --- */
+
 .hm-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 .hm-input-group {
   position: relative;
 }
-.hm-input-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  margin-bottom: 8px;
+
+.hm-name-group {
+  display: flex;
+  gap: 16px;
 }
+.hm-name-group .hm-input-group {
+  flex: 1;
+}
+@media (max-width: 500px) {
+  .hm-name-group {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
 .hm-input-wrapper {
   position: relative;
 }
@@ -130,9 +134,22 @@
   background: var(--color-accent-hover);
   box-shadow: var(--shadow-glow);
 }
-.hm-input:focus + .hm-input-icon {
+.hm-input:focus ~ .hm-input-icon {
   color: var(--color-primary);
 }
+
+
+.hm-input.hm-input-error {
+  border-color: var(--color-error);
+}
+.hm-error-text {
+  color: var(--color-error);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 6px;
+  display: block;
+}
+
 .hm-password-toggle {
   position: absolute;
   right: 12px;
@@ -144,30 +161,31 @@
   cursor: pointer;
   padding: 4px;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .hm-password-toggle:hover {
   color: var(--color-text-primary);
 }
 
-.hm-form-options {
+
+.hm-checkbox-group {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
 }
 .hm-checkbox {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   cursor: pointer;
   user-select: none;
-  gap: 8px;
+  gap: 12px;
 }
 .hm-checkbox input {
   display: none;
 }
 .hm-checkbox-mark {
+  flex-shrink: 0;
+  margin-top: 2px;
   width: 18px;
   height: 18px;
   border: 2px solid var(--color-border);
@@ -194,15 +212,25 @@
   opacity: 1;
   transform: scale(1);
 }
+.hm-checkbox-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+.hm-checkbox-icon {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
 .hm-form-link {
   color: var(--color-primary);
   font-weight: 500;
   text-decoration: none;
-  transition: color var(--transition-smooth);
 }
 .hm-form-link:hover {
-  color: var(--color-primary-hover);
   text-decoration: underline;
+  color: var(--color-primary-hover);
 }
 
 .hm-status {
@@ -223,14 +251,6 @@
   background-color: rgba(45, 220, 122, 0.1);
   border-color: var(--color-success);
   color: var(--color-success);
-}
-.hm-status-error {
-  background-color: rgba(255, 90, 90, 0.1);
-  border-color: var(--color-error);
-  color: var(--color-error);
-}
-.hm-status-icon {
-  flex-shrink: 0;
 }
 .hm-spinning {
   animation: spin 1s linear infinite;
@@ -255,6 +275,7 @@
   cursor: pointer;
   transition: var(--transition-smooth);
   width: 100%;
+  margin-top: 8px;
 }
 .hm-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
@@ -269,6 +290,7 @@
   flex-shrink: 0;
 }
 
+/* Footer */
 .hm-form-footer {
   margin-top: 32px;
   text-align: center;
@@ -309,6 +331,7 @@
   border-color: var(--color-primary);
 }
 
+/* Decorative Background */
 .hm-form-background {
   position: absolute;
   inset: 0;
@@ -336,6 +359,7 @@
   right: -25%;
 }
 
+/* --- Keyframes --- */
 @keyframes spin {
   from {
     transform: rotate(0deg);

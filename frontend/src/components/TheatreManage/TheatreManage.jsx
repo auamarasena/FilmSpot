@@ -1,286 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 import "./TheatreManage.css";
-
-const mockInitialTheatreData = [
-  {
-    _id: "theatre-1",
-    location: "Colombo City Center",
-    screens: [
-      {
-        _id: "screen-1a",
-        screenNumber: 1,
-        format: "4K Dolby Atmos",
-        rowCount: 8,
-        seatPerRow: 12,
-      },
-      {
-        _id: "screen-1b",
-        screenNumber: 2,
-        format: "IMAX 3D",
-        rowCount: 10,
-        seatPerRow: 15,
-      },
-    ],
-  },
-  {
-    _id: "theatre-2",
-    location: "One Galle Face PVR",
-    screens: [
-      {
-        _id: "screen-2a",
-        screenNumber: 1,
-        format: "Standard 2D",
-        rowCount: 7,
-        seatPerRow: 10,
-      },
-    ],
-  },
-  {
-    _id: "theatre-3",
-    location: "Kandy City Center",
-    screens: [],
-  },
-];
-
-function TheatreManage() {
-  const [theatreData, setTheatreData] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [popup, setPopup] = useState({ type: null, data: null });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const itemsPerPage = 6;
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    // Simulate a 1-second network delay
-    setTimeout(() => {
-      try {
-        setTheatreData(mockInitialTheatreData);
-      } catch (err) {
-        setError("Failed to load mock data.");
-      } finally {
-        setLoading(false);
-      }
-    }, 1000);
-  }, []);
-
-  const handleAddTheatre = (newTheatre) => {
-    setSubmitting(true);
-    setError(null);
-    setTimeout(() => {
-      try {
-        const newTheatreWithId = {
-          ...newTheatre,
-          _id: `theatre-${new Date().getTime()}`, // Create a unique ID
-          screens: [],
-        };
-        setTheatreData((prevData) => [...prevData, newTheatreWithId]);
-        setPopup({ type: null, data: null }); // Close popup on success
-      } catch (err) {
-        setError("Failed to add theatre locally.");
-      } finally {
-        setSubmitting(false);
-      }
-    }, 1000);
-  };
-
-  const handleAddScreen = (newScreenData) => {
-    setSubmitting(true);
-    setError(null);
-    setTimeout(() => {
-      try {
-        const newScreenWithId = {
-          ...newScreenData,
-          _id: `screen-${new Date().getTime()}`,
-        };
-        const updatedTheatreData = theatreData.map((theatre) => {
-          if (theatre._id === newScreenData.theatreId) {
-            return {
-              ...theatre,
-              screens: [...(theatre.screens || []), newScreenWithId],
-            };
-          }
-          return theatre;
-        });
-        setTheatreData(updatedTheatreData);
-        setPopup({ type: null, data: null }); // Close popup on success
-      } catch (err) {
-        setError("Failed to add screen locally.");
-      } finally {
-        setSubmitting(false);
-      }
-    }, 1000);
-  };
-
-  const deleteTheatre = (theatreId) => {
-    if (!window.confirm("Are you sure you want to delete this theatre?"))
-      return;
-    try {
-      setTheatreData((prevData) => prevData.filter((t) => t._id !== theatreId));
-    } catch (err) {
-      setError("Failed to delete theatre locally.");
-    }
-  };
-
-  // Filtering, Pagination
-
-  const filteredTheatres = theatreData.filter((theatre) =>
-    theatre.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentTheatres = filteredTheatres.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
-  const totalPages = Math.ceil(filteredTheatres.length / itemsPerPage);
-
-  if (loading) {
-    return <div className='tm-loading-container'>...Loading</div>;
-  }
-  if (error && !popup.type) {
-    return <div className='tm-error-container'>{error}</div>;
-  }
-
-  return (
-    <div className='tm-container'>
-      <div className='tm-header'>
-        <h1>Theatre Management</h1>
-        <div className='tm-actions'>
-          <button
-            className='tm-add-btn'
-            onClick={() => setPopup({ type: "addTheatre", data: null })}>
-            Add Theatre
-          </button>
-          <button
-            className='tm-add-btn secondary'
-            onClick={() => setPopup({ type: "addScreen", data: null })}>
-            Add Screen
-          </button>
-        </div>
-      </div>
-      <div className='tm-search-container'>
-        <input
-          type='text'
-          placeholder='Search theatres...'
-          className='tm-search-input'
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-      <div className='tm-content'>
-        <h2>Theatre List ({filteredTheatres.length})</h2>
-        {currentTheatres.length === 0 ? (
-          <div className='tm-empty-state'>
-            <h3>No Theatres Found</h3>
-          </div>
-        ) : (
-          <>
-            <table className='tm-table'>
-              <thead>
-                <tr>
-                  <th>Location</th>
-                  <th>Screens & Details</th>
-                  <th>Capacity</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentTheatres.map((theatre) => {
-                  const totalCapacity =
-                    theatre.screens?.reduce(
-                      (t, s) => t + s.rowCount * s.seatPerRow,
-                      0
-                    ) || 0;
-                  return (
-                    <tr key={theatre._id}>
-                      <td>{theatre.location}</td>
-                      <td>
-                        {theatre.screens?.length > 0
-                          ? theatre.screens.map((s, i) => (
-                              <div key={i}>
-                                Screen {s.screenNumber} - {s.format}
-                              </div>
-                            ))
-                          : "No screens"}
-                      </td>
-                      <td>{totalCapacity} seats</td>
-                      <td>
-                        <button
-                          className='tm-delete-btn'
-                          onClick={() => deleteTheatre(theatre._id)}>
-                          🗑️
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {totalPages > 1 && (
-              <div className='tm-pagination'>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage === 1}>
-                  Previous
-                </button>
-                <span>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(p + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}>
-                  Next
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-      {popup.type === "addTheatre" && (
-        <AddTheatrePopup
-          onSubmit={handleAddTheatre}
-          onClose={() => setPopup({ type: null, data: null })}
-          submitting={submitting}
-          error={error}
-        />
-      )}
-      {popup.type === "addScreen" && (
-        <AddScreenPopup
-          theatres={theatreData}
-          onSubmit={handleAddScreen}
-          onClose={() => setPopup({ type: null, data: null })}
-          submitting={submitting}
-          error={error}
-        />
-      )}
-    </div>
-  );
-}
 
 function AddTheatrePopup({ onSubmit, onClose, submitting, error }) {
   const [location, setLocation] = useState("");
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!location.trim()) return;
     onSubmit({ location });
   };
   return (
     <div className='tm-modal-overlay'>
       <div className='tm-modal-content'>
-        <h2>Add New Theatre</h2>
-        <button onClick={onClose}>×</button>
+        <div className='tm-modal-header'>
+          <h2>Add New Theatre</h2>
+          <button className='tm-modal-close' onClick={onClose}>
+            ×
+          </button>
+        </div>
         {error && <div className='tm-error-message'>{error}</div>}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className='tm-form'>
           <input
             type='text'
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder='Theatre Location'
+            placeholder='e.g., Colombo City Center'
             required
           />
           <div className='tm-form-actions'>
@@ -288,7 +33,7 @@ function AddTheatrePopup({ onSubmit, onClose, submitting, error }) {
               Cancel
             </button>
             <button type='submit' disabled={submitting}>
-              {submitting ? "Saving..." : "Save"}
+              {submitting ? "Saving..." : "Save Theatre"}
             </button>
           </div>
         </form>
@@ -314,16 +59,22 @@ function AddScreenPopup({ theatres, onSubmit, onClose, submitting, error }) {
   return (
     <div className='tm-modal-overlay'>
       <div className='tm-modal-content'>
-        <h2>Add New Screen</h2>
-        <button onClick={onClose}>×</button>
+        <div className='tm-modal-header'>
+          <h2>Add New Screen</h2>
+          <button className='tm-modal-close' onClick={onClose}>
+            ×
+          </button>
+        </div>
         {error && <div className='tm-error-message'>{error}</div>}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className='tm-form'>
           <select
             name='theatreId'
             value={formData.theatreId}
             onChange={handleChange}
             required>
-            <option value=''>Select Theatre</option>
+            <option value='' disabled>
+              Select Theatre *
+            </option>
             {theatres.map((t) => (
               <option key={t._id} value={t._id}>
                 {t.location}
@@ -331,11 +82,11 @@ function AddScreenPopup({ theatres, onSubmit, onClose, submitting, error }) {
             ))}
           </select>
           <input
-            type='text'
+            type='number'
             name='screenNumber'
             value={formData.screenNumber}
             onChange={handleChange}
-            placeholder='Screen Number'
+            placeholder='Screen Number *'
             required
           />
           <input
@@ -343,7 +94,7 @@ function AddScreenPopup({ theatres, onSubmit, onClose, submitting, error }) {
             name='format'
             value={formData.format}
             onChange={handleChange}
-            placeholder='Format (e.g., 2D, 3D)'
+            placeholder='Format (e.g., 4K Dolby Atmos) *'
             required
           />
           <input
@@ -351,7 +102,7 @@ function AddScreenPopup({ theatres, onSubmit, onClose, submitting, error }) {
             name='rowCount'
             value={formData.rowCount}
             onChange={handleChange}
-            placeholder='Row Count'
+            placeholder='Number of Rows *'
             required
           />
           <input
@@ -359,7 +110,7 @@ function AddScreenPopup({ theatres, onSubmit, onClose, submitting, error }) {
             name='seatPerRow'
             value={formData.seatPerRow}
             onChange={handleChange}
-            placeholder='Seats Per Row'
+            placeholder='Seats Per Row *'
             required
           />
           <div className='tm-form-actions'>
@@ -367,11 +118,215 @@ function AddScreenPopup({ theatres, onSubmit, onClose, submitting, error }) {
               Cancel
             </button>
             <button type='submit' disabled={submitting}>
-              {submitting ? "Saving..." : "Save"}
+              {submitting ? "Saving..." : "Save Screen"}
             </button>
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function TheatreManage() {
+  const { user } = useAuth();
+  const [theatreData, setTheatreData] = useState([]);
+  const [popup, setPopup] = useState({ type: null });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchTheatres = useCallback(async () => {
+    if (!user || user.role !== "admin") {
+      setError("You are not authorized to view this page.");
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      // Use relative path
+      const { data } = await api.get("/theatres/with-screens");
+      setTheatreData(data);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to fetch theatre data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchTheatres();
+  }, [fetchTheatres]);
+
+  const handleAddTheatre = async (newTheatre) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      await api.post("/theatres", newTheatre);
+      setPopup({ type: null });
+      fetchTheatres();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to add theatre.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAddScreen = async (newScreenData) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      await api.post("/screens", newScreenData);
+      setPopup({ type: null });
+      fetchTheatres();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to add screen.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteTheatre = async (theatreId) => {
+    if (
+      !window.confirm(
+        "Are you sure? This will delete the theatre and ALL its screens. This action cannot be undone."
+      )
+    )
+      return;
+    try {
+      // THIS IS THE FIX: Use 'api.delete'
+      await api.delete(`/theatres/${theatreId}`);
+      fetchTheatres();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete theatre.");
+    }
+  };
+
+  const filteredTheatres = useMemo(
+    () =>
+      theatreData.filter((theatre) =>
+        theatre.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [theatreData, searchTerm]
+  );
+
+  if (loading) {
+    return (
+      <div className='tm-loading-container'>Loading Theatre Management...</div>
+    );
+  }
+  if (error && !popup.type) {
+    return (
+      <div className='tm-error-container'>
+        <h2>Error</h2>
+        <p>{error}</p>
+        <button onClick={fetchTheatres}>Retry</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className='tm-container'>
+      <div className='tm-header'>
+        <h1>Theatre Management</h1>
+        <div className='tm-actions'>
+          <button
+            className='tm-add-btn'
+            onClick={() => setPopup({ type: "addTheatre" })}>
+            Add Theatre
+          </button>
+          <button
+            className='tm-add-btn secondary'
+            onClick={() => setPopup({ type: "addScreen" })}>
+            Add Screen
+          </button>
+        </div>
+      </div>
+      <div className='tm-search-container'>
+        <input
+          type='text'
+          placeholder='Search theatres by location...'
+          className='tm-search-input'
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+      <div className='tm-content'>
+        <h2>Theatre List ({filteredTheatres.length})</h2>
+        {filteredTheatres.length === 0 ? (
+          <div className='tm-empty-state'>
+            <h3>No Theatres Found</h3>
+            <p>
+              {searchTerm
+                ? "No theatres match your search."
+                : "Click 'Add Theatre' to get started."}
+            </p>
+          </div>
+        ) : (
+          <table className='tm-table'>
+            <thead>
+              <tr>
+                <th>Location</th>
+                <th>Screens & Details</th>
+                <th>Total Capacity</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTheatres.map((theatre) => {
+                const totalCapacity =
+                  theatre.screens?.reduce(
+                    (total, screen) =>
+                      total + screen.rowCount * screen.seatPerRow,
+                    0
+                  ) || 0;
+                return (
+                  <tr key={theatre._id}>
+                    <td data-label='Location'>{theatre.location}</td>
+                    <td data-label='Screens'>
+                      {theatre.screens?.length > 0
+                        ? theatre.screens.map((s) => (
+                            <div key={s._id}>
+                              Screen {s.screenNumber} - {s.format}
+                            </div>
+                          ))
+                        : "No screens added"}
+                    </td>
+                    <td data-label='Capacity'>{totalCapacity} seats</td>
+                    <td data-label='Actions'>
+                      <button
+                        className='tm-delete-btn'
+                        title='Delete Theatre'
+                        onClick={() => handleDeleteTheatre(theatre._id)}>
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {popup.type === "addTheatre" && (
+        <AddTheatrePopup
+          onSubmit={handleAddTheatre}
+          onClose={() => setPopup({ type: null })}
+          submitting={submitting}
+          error={error}
+        />
+      )}
+      {popup.type === "addScreen" && (
+        <AddScreenPopup
+          theatres={theatreData}
+          onSubmit={handleAddScreen}
+          onClose={() => setPopup({ type: null })}
+          submitting={submitting}
+          error={error}
+        />
+      )}
     </div>
   );
 }
