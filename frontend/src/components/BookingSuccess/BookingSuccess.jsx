@@ -6,6 +6,7 @@ function BookingSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Get the real data passed from the payment page
   const {
     booking,
     movieTitle,
@@ -15,33 +16,41 @@ function BookingSuccess() {
     totalAmount,
     userDetails,
     showtimeDetails,
-  } = location.state || {}; // The '|| {}' prevents errors if the state is undefined.
+  } = location.state || {};
 
+  if (!booking) {
+    return (
+      <div className='booking-container'>
+        <div className='booking-content'>
+          <h1>No Booking Found</h1>
+          <p>
+            It looks like you've landed on this page directly. Please find your
+            confirmed bookings in your history.
+          </p>
+          <button
+            className='btn btn-primary'
+            onClick={() => navigate("/booking-history")}>
+            View My Bookings
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Use data for display
   const displayData = {
-    movieTitle: movieTitle || "Spider-Man: Far from Home",
-    theatreLocation:
-      showtimeDetails?.screenId?.theatreId?.location ||
-      "FilmSpot - Colombo City Center",
-    screenNumber: showtimeDetails?.screenId?.screenNumber || "02",
-    ticketNo: booking?.ticketNo || "ABC123XYZ",
-    ticketCount: selectedSeats?.length || booking?.seatCount || 2,
-    seats: selectedSeats?.join(", ") || "A5, A6",
-    date: selectedDate || "Sat, 16 Aug",
-    time: selectedTime || "07:00 PM",
-    totalAmount: totalAmount || 3000,
-    customerName: userDetails
-      ? `${userDetails.firstName} ${userDetails.lastName}`
-      : "Anuda Amarasena",
-    customerMobile: userDetails?.mobile || "071-234-5678",
-    customerEmail: userDetails?.email || "anuda@example.com",
-  };
-
-  const handleGoHome = () => {
-    navigate("/");
-  };
-
-  const handleViewBookings = () => {
-    navigate("/bookinghistory");
+    movieTitle: movieTitle,
+    theatreLocation: showtimeDetails?.screenId?.theatreId?.location,
+    screenNumber: showtimeDetails?.screenId?.screenNumber,
+    ticketNo: booking?.ticketNo,
+    ticketCount: selectedSeats?.length,
+    seats: selectedSeats?.join(", "),
+    date: selectedDate,
+    time: selectedTime,
+    totalAmount: totalAmount,
+    customerName: `${userDetails.firstName} ${userDetails.lastName}`,
+    customerMobile: userDetails?.mobile,
+    customerEmail: userDetails?.email,
   };
 
   return (
@@ -110,23 +119,23 @@ function BookingSuccess() {
         </div>
 
         <div className='action-buttons'>
-          <button className='btn btn-primary' onClick={handleGoHome}>
+          <button className='btn btn-primary' onClick={() => navigate("/")}>
             Book Another Movie
           </button>
-          <button className='btn btn-secondary' onClick={handleViewBookings}>
+          <button
+            className='btn btn-secondary'
+            onClick={() => navigate("/booking-history")}>
             View My Bookings
           </button>
         </div>
 
         <div className='note-section'>
           <p className='note'>
-            📋 <strong>Important:</strong> All sales are final and there will be
-            no refunds, cancellations and or amendments to the confirmed and
-            finalized bookings.
+            📋 <strong>Important:</strong> All sales are final.
           </p>
           <p className='confirmation-note'>
             📧 A confirmation email has been sent to your registered email
-            address with your ticket details.
+            address.
           </p>
         </div>
       </div>

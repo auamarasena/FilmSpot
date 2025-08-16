@@ -1,0 +1,102 @@
+
+:root {
+  --color-primary: #ff6b35;
+  --color-primary-hover: #ff8c42;
+  --color-secondary: #ff9500;
+  --color-background: #0a0a0a;
+  --color-surface: #1f1f1f;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b8b8b8;
+  --color-border: rgba(255, 107, 53, 0.3);
+  --font-family-main: "Inter", sans-serif;
+  --font-family-display: "Poppins", sans-serif;
+  --border-radius: 16px;
+  --spacing-unit: 8px;
+  --shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 30px rgba(255, 107, 53, 0.3);
+  --transition-smooth: all 0.3s ease;
+  --transition-spring: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+
+
+.booking-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-main);
+}
+
+.booking-content {
+  flex: 1;
+  padding: calc(var(--spacing-unit) * 4);
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.booking-heading {
+  font-family: var(--font-family-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: calc(var(--spacing-unit) * 6);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.movie-info {
+  margin-bottom: calc(var(--spacing-unit) * 4);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: calc(var(--spacing-unit) * 3);
+}
+
+.movie-title {
+  font-family: var(--font-family-display);
+  font-size: 1.8em;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-unit);
+}
+
+.ticket-details,
+.customer-info {
+  margin-bottom: calc(var(--spacing-unit) * 3);
+  line-height: 1.8;
+}
+
+.note {
+  color: var(--color-text-secondary);
+  font-size: 0.9em;
+  margin-top: calc(var(--spacing-unit) * 3);
+}
+
+.label {
+  color: var(--color-text-secondary);
+  margin-right: var(--spacing-unit);
+}
+
+.auth-buttons {
+  display: flex;
+  gap: calc(var(--spacing-unit) * 2); 
+}
+
+.title-rumba {
+  padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 4);
+  color: var(--color-text-primary);
+}
+
+.title a {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
