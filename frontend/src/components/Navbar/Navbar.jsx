@@ -18,7 +18,6 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -29,7 +28,7 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // When the user navigates to a new page, close the mobile menu
+  // Effect to close menus when the route changes
   const location = useLocation();
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -40,7 +39,6 @@ const Navbar = () => {
     <nav className='nb-navbar'>
       <div className='nb-navbar-container'>
         <div className='nb-navbar-content'>
-          {/* Logo */}
           <div className='nb-logo'>
             <Link to='/' className='nb-logo-link'>
               <span className='nb-logo-text'>FilmSpot</span>
@@ -48,7 +46,6 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop Nav */}
           <div className='nb-nav-links'>
             <NavLink href='/'>Home</NavLink>
             <NavLink href='/movies'>Movies</NavLink>
@@ -56,7 +53,6 @@ const Navbar = () => {
             <NavLink href='/about'>About Us</NavLink>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             className='nb-mobile-menu-btn'
             onClick={toggleMobileMenu}
@@ -113,12 +109,21 @@ const Navbar = () => {
                     </div>
                     <div className='nb-dropdown-divider'></div>
                     <div className='nb-dropdown-links'>
+                      {user?.role === "admin" && (
+                        <Link
+                          to='/admin-dash'
+                          className='nb-dropdown-link admin-link'>
+                          Admin Dashboard
+                        </Link>
+                      )}
+
+                      <Link to='/profile' className='nb-dropdown-link'>
+                        My Profile
+                      </Link>
                       <Link to='/booking-history' className='nb-dropdown-link'>
                         My Bookings
                       </Link>
-                      <Link to='/change-pw' className='nb-dropdown-link'>
-                        Change Password
-                      </Link>
+
                       <div className='nb-dropdown-divider'></div>
                       <button
                         onClick={handleLogout}
@@ -142,7 +147,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         <div className={`nb-mobile-menu ${isMobileMenuOpen ? "nb-open" : ""}`}>
           <div className='nb-mobile-nav-links'>
             <MobileNavLink href='/'>Home</MobileNavLink>
@@ -150,7 +154,6 @@ const Navbar = () => {
             <MobileNavLink href='/offer'>Offers</MobileNavLink>
             <MobileNavLink href='/about'>About Us</MobileNavLink>
           </div>
-
           {!isAuthenticated && (
             <div className='nb-mobile-auth'>
               <Link to='/sign-in'>
@@ -167,6 +170,7 @@ const Navbar = () => {
   );
 };
 
+//Helper Components
 const NavLink = ({ href, children }) => {
   const location = useLocation();
   const isActive = location.pathname === href;
