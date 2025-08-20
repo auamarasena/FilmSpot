@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import "./ProfilePage.css";
 
 const ProfilePage = () => {
-  const { user, login, isAuthenticated } = useAuth();
+  const { user, login, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("details");
 
@@ -18,7 +18,8 @@ const ProfilePage = () => {
   const [status, setStatus] = useState({ message: "", type: "" });
 
   useEffect(() => {
-    if (isAuthenticated === false) {
+    // Wait for auth to finish loading before checking authentication
+    if (!authLoading && isAuthenticated === false) {
       navigate("/sign-in");
     }
     if (user) {
@@ -28,7 +29,7 @@ const ProfilePage = () => {
         mobile: user.mobile || "",
       });
     }
-  }, [user, isAuthenticated, navigate]);
+  }, [user, isAuthenticated, authLoading, navigate]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

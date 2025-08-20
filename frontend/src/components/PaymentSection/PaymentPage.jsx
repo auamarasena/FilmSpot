@@ -12,7 +12,7 @@ import "./PaymentPage.css";
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const {
     selectedSeats,
@@ -27,11 +27,11 @@ const PaymentPage = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Redirect if essential data is missing
-    if (!isAuthenticated || !totalPrice || !showtimeDetails) {
+    // Wait for auth to load, then redirect if essential data is missing
+    if (!authLoading && (!isAuthenticated || !totalPrice || !showtimeDetails)) {
       navigate("/");
     }
-  }, [isAuthenticated, totalPrice, showtimeDetails, navigate]);
+  }, [isAuthenticated, authLoading, totalPrice, showtimeDetails, navigate]);
 
   const handlePaymentSuccess = async (paymentDetails) => {
     setIsLoading(true);

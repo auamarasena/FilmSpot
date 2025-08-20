@@ -3,17 +3,21 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { format } from "date-fns";
+import BookingDetailsModal from "./BookingDetailsModal";
 import "./BookingHistory.css";
 
 function BookingHistoryP() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated === false) {
+    // Wait for auth to finish loading before checking authentication
+    if (!authLoading && isAuthenticated === false) {
       navigate("/sign-in");
       return;
     }
@@ -37,11 +41,11 @@ function BookingHistoryP() {
       }
     };
 
-    // Only fetch when the user is authenticated
-    if (isAuthenticated) {
+    // Only fetch when auth is loaded and user is authenticated
+    if (!authLoading && isAuthenticated) {
       fetchBookings();
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
 
   const bookingStats = useMemo(() => {
     const total = bookings.length;
@@ -52,8 +56,14 @@ function BookingHistoryP() {
     return { total, thisMonth, totalSeats };
   }, [bookings]);
 
-  const handleBookingClick = (bookingId) => {
-    console.log("Navigate to details for booking:", bookingId);
+  const handleBookingClick = (booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedBooking(null);
   };
 
   const formatDate = (dateString, timeString) => {
@@ -122,7 +132,7 @@ function BookingHistoryP() {
                     <div
                       key={booking._id}
                       className='bkh-booking-card'
-                      onClick={() => handleBookingClick(booking._id)}
+                      onClick={() => handleBookingClick(booking)}
                       role='button'
                       tabIndex={0}>
                       <div className='bkh-booking-info'>
@@ -175,6 +185,12 @@ function BookingHistoryP() {
           )}
         </div>
       </div>
+      
+      <BookingDetailsModal
+        booking={selectedBooking}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
