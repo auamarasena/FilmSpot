@@ -1,37 +1,38 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../../api/axios";
-import { Link } from "react-router-dom";
 import "./MovieDetails.css";
 
 const MovieDetailsSkeleton = () => (
-  <div className='movie-details'>
-    <div className='movie-poster-container'>
-      <div className='poster-skeleton' />
-    </div>
-    <div className='movie-info'>
-      <div className='movie-header'>
-        <div
-          className='skeleton-line title'
-          style={{ width: "70%", height: "40px", marginBottom: "1rem" }}
-        />
+  <div className='movie-details-page'>
+    <div className='movie-details'>
+      <div className='movie-poster-container'>
+        <div className='poster-skeleton' />
       </div>
-      <div className='movie-meta'>
-        <div className='meta-item skeleton-box'></div>
-        <div className='meta-item skeleton-box'></div>
-        <div className='meta-item skeleton-box'></div>
-      </div>
-      <div className='movie-genre'>
-        <div
-          className='skeleton-line text'
-          style={{ width: "100px", height: "24px" }}
-        />
-      </div>
-      <div className='movie-description'>
-        <h3>Plot Summary</h3>
-        <div className='skeleton-line text' style={{ width: "90%" }} />
-        <div className='skeleton-line text' style={{ width: "80%" }} />
-        <div className='skeleton-line text short' style={{ width: "60%" }} />
+      <div className='movie-info'>
+        <div className='movie-header'>
+          <div
+            className='skeleton-line title'
+            style={{ width: "70%", height: "40px", marginBottom: "1rem" }}
+          />
+        </div>
+        <div className='movie-meta'>
+          <div className='meta-item skeleton-box'></div>
+          <div className='meta-item skeleton-box'></div>
+          <div className='meta-item skeleton-box'></div>
+        </div>
+        <div className='movie-genre'>
+          <div
+            className='skeleton-line text'
+            style={{ width: "100px", height: "24px" }}
+          />
+        </div>
+        <div className='movie-description'>
+          <h3>Plot Summary</h3>
+          <div className='skeleton-line text' style={{ width: "90%" }} />
+          <div className='skeleton-line text' style={{ width: "80%" }} />
+          <div className='skeleton-line text short' style={{ width: "60%" }} />
+        </div>
       </div>
     </div>
   </div>
@@ -48,14 +49,18 @@ const MovieDetails = () => {
 
   useEffect(() => {
     const fetchMovie = async () => {
-      if (!id) return;
+      if (!id) {
+        setError("No movie ID provided.");
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       setError(null);
       try {
         const { data } = await api.get(`/movies/${id}`);
         setMovie(data);
       } catch (err) {
-        setError("Could not fetch movie details. Please try again later.");
+        setError("Could not fetch movie details. It may not exist.");
         console.error("Fetch Movie Error:", err);
       } finally {
         setLoading(false);
@@ -82,19 +87,23 @@ const MovieDetails = () => {
       const favorites = JSON.parse(
         localStorage.getItem("favoriteMovies") || "[]"
       );
+      const isCurrentlyFavorite = favorites.some(
+        (fav) => fav._id === movie._id
+      );
       let updatedFavorites;
-      if (isFavorite) {
+      if (isCurrentlyFavorite) {
         updatedFavorites = favorites.filter((fav) => fav._id !== movie._id);
       } else {
         updatedFavorites = [...favorites, movie];
       }
       localStorage.setItem("favoriteMovies", JSON.stringify(updatedFavorites));
-      setIsFavorite(!isFavorite);
+      setIsFavorite(!isCurrentlyFavorite);
     } catch (e) {
       console.error("Failed to update favorites in localStorage", e);
     }
   };
 
+  //Formatting Helpers
   const formatReleaseDate = (date) =>
     new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -112,6 +121,7 @@ const MovieDetails = () => {
     return isDescriptionExpanded ? text : `${text.substring(0, maxLength)}...`;
   };
 
+  //Render Logic
   if (loading) {
     return <MovieDetailsSkeleton />;
   }
@@ -140,7 +150,8 @@ const MovieDetails = () => {
           <div className='poster-overlay'>
             <button
               className={`favorite-btn ${isFavorite ? "favorited" : ""}`}
-              onClick={handleFavoriteToggle}>
+              onClick={handleFavoriteToggle}
+              title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}>
               {isFavorite ? "❤️" : "🤍"}
             </button>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -14,7 +14,6 @@ const StatCard = ({ title, value, icon, color, subtitle }) => (
     </div>
   </div>
 );
-
 const ActionCard = ({ title, description, icon, onClick, color }) => (
   <div className={`action-card ${color}`} onClick={onClick}>
     <div className='action-icon'>{icon}</div>
@@ -25,7 +24,6 @@ const ActionCard = ({ title, description, icon, onClick, color }) => (
     <div className='action-arrow'>→</div>
   </div>
 );
-
 const ActivityItem = ({ icon, title, description, time }) => (
   <div className='activity-item'>
     <div className='activity-icon'>{icon}</div>
@@ -37,64 +35,66 @@ const ActivityItem = ({ icon, title, description, time }) => (
   </div>
 );
 
+//Main Admin Dashboard
 const AdminDash = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [totalMovies, setTotalMovies] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
   const [activeShowtimes, setActiveShowtimes] = useState(0);
+
+  // Start in a loading state by default
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Effect for client-side route protection
   useEffect(() => {
+    if (isAuthenticated === null) {
+      return;
+    }
     if (isAuthenticated === false) {
       navigate("/sign-in-admin");
-    } else if (user && user.role !== "admin") {
+      return; // Stop execution
+    }
+
+    if (user && user.role === "admin") {
+      const fetchData = async () => {
+        setError(null);
+        try {
+          const [moviesRes, usersRes, showtimesRes] = await Promise.all([
+            api.get("/movies/stats/count"),
+            api.get("/auth/count"),
+            api.get("/showtimes/count/today"),
+          ]);
+          setTotalMovies(moviesRes.data.count);
+          setTotalUsers(usersRes.data.count);
+          setActiveShowtimes(showtimesRes.data.count);
+        } catch (err) {
+          setError(
+            err.response?.data?.message || "Failed to fetch dashboard data."
+          );
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchData();
+    } else {
+      // If user is not an admin, redirect them away.
       navigate("/");
     }
   }, [isAuthenticated, user, navigate]);
 
-  // Effect for fetching dashboard data
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const [moviesRes, usersRes, showtimesRes] = await Promise.all([
-          api.get("/movies/stats/count"),
-          api.get("/auth/count"),
-          api.get("/showtimes/count/today"),
-        ]);
-        setTotalMovies(moviesRes.data.count);
-        setTotalUsers(usersRes.data.count);
-        setActiveShowtimes(showtimesRes.data.count);
-      } catch (err) {
-        setError(
-          err.response?.data?.message || "Failed to fetch dashboard data."
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Only fetch data if we have a confirmed admin user
-    if (user && user.role === "admin") {
-      fetchData();
-    }
-  }, [user]);
-
-  //Live clock
+  // Effect for the live clock
   useEffect(() => {
     const timeInterval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timeInterval);
   }, []);
 
+  // Helper functions
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const handleNavigation = (path) => navigate(path);
-
   const formatTime = (date) =>
     date.toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -109,6 +109,7 @@ const AdminDash = () => {
       day: "numeric",
     });
 
+  //Render Logic
   if (isLoading) {
     return (
       <div className='loading-container'>
@@ -117,6 +118,7 @@ const AdminDash = () => {
       </div>
     );
   }
+
   if (error) {
     return (
       <div className='error-container'>
@@ -172,7 +174,6 @@ const AdminDash = () => {
           </div>
         </nav>
       </div>
-
       <div className={`main-content ${isSidebarOpen ? "shifted" : ""}`}>
         <header className='dashboard-header'>
           <div className='header-left'>
@@ -194,7 +195,6 @@ const AdminDash = () => {
             </div>
           </div>
         </header>
-
         <div className='dashboard-content'>
           <div className='welcome-section'>
             <h2>Welcome back, {user?.firstName || "Admin"}! 👋</h2>
@@ -253,23 +253,6 @@ const AdminDash = () => {
                 icon='🏛️'
                 onClick={() => handleNavigation("/theatre-manage")}
                 color='purple'
-              />
-            </div>
-          </div>
-          <div className='activity-section'>
-            <h3>Recent Activity</h3>
-            <div className='activity-list'>
-              <ActivityItem
-                icon='🎬'
-                title='New movie added (Example)'
-                description='Inception was added to the catalog'
-                time='2 hours ago'
-              />
-              <ActivityItem
-                icon='👤'
-                title='New user registered (Example)'
-                description='John Doe created an account'
-                time='4 hours ago'
               />
             </div>
           </div>

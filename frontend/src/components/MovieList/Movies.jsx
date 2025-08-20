@@ -1,22 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import MovieListSearchBar from "./MovieListSearchbar";
 import { Grid, List, Clock, Star, Calendar } from "lucide-react";
 import "./movies.css";
 
-function createSlug(title) {
-  if (!title) return "";
-  return title
-    .toLowerCase()
-    .replace(/ /g, "-")
-    .replace(/[^\w-]+/g, "");
-}
-
 const Movies = () => {
   const [filter, setFilter] = useState("Now Showing");
   const [allMovies, setAllMovies] = useState([]);
-  const [filteredMovies, setFilteredMovies] = useState([]);
+  const [displayMovies, setDisplayMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTitle, setSearchTitle] = useState("");
@@ -26,99 +18,74 @@ const Movies = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchAllMovies = async () => {
+    const fetchMovies = async () => {
       setLoading(true);
       setError(null);
       try {
-        const { data } = await api.get("http://localhost:5001/api/movies");
-        setAllMovies(data);
+        const params = new URLSearchParams();
+        if (searchTitle) params.append("search", searchTitle);
+        if (searchGenre) params.append("genre", searchGenre);
+        if (filter) params.append("filter", filter);
+
+        const { data } = await api.get(`/movies`, { params });
+
+        let sortedData = [...data];
+        switch (sortBy) {
+          case "title":
+            sortedData.sort((a, b) => a.title.localeCompare(b.title));
+            break;
+          case "rating":
+            sortedData.sort(
+              (a, b) => (b.imdbRating || 0) - (a.imdbRating || 0)
+            );
+            break;
+          case "duration":
+            sortedData.sort(
+              (a, b) =>
+                (parseInt(b.duration) || 0) - (parseInt(a.duration) || 0)
+            );
+            break;
+          case "releaseDate":
+          default:
+            break;
+        }
+
+        setDisplayMovies(sortedData);
       } catch (err) {
-        setError("Failed to load movies from the server.");
+        setError("Failed to load movies. Please try again.");
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
-    fetchAllMovies();
-  }, []);
+    fetchMovies();
+  }, [filter, searchTitle, searchGenre, sortBy]);
 
   useEffect(() => {
-    let processedMovies = [...allMovies];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    //Now Showing and Coming Soon filter
-    if (filter === "Now Showing") {
-      processedMovies = processedMovies.filter(
-        (movie) => new Date(movie.releaseDate) <= today
+    api
+      .get("/movies")
+      .then((response) => {
+        setAllMovies(response.data);
+      })
+      .catch((err) =>
+        console.error("Failed to fetch all movies for genre list:", err)
       );
-    } else {
-      // "Coming Soon"
-      processedMovies = processedMovies.filter(
-        (movie) => new Date(movie.releaseDate) > today
-      );
-    }
-
-    // B. Apply search filters
-    if (searchTitle) {
-      processedMovies = processedMovies.filter((movie) =>
-        movie.title.toLowerCase().includes(searchTitle.toLowerCase())
-      );
-    }
-    if (searchGenre) {
-      // Assuming movie.genres is an array of strings
-      processedMovies = processedMovies.filter((movie) =>
-        movie.genres.some((g) =>
-          g.toLowerCase().includes(searchGenre.toLowerCase())
-        )
-      );
-    }
-
-    // C. Apply sorting
-    switch (sortBy) {
-      case "title":
-        processedMovies.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case "rating":
-        processedMovies.sort(
-          (a, b) => (b.imdbRating || 0) - (a.imdbRating || 0)
-        );
-        break;
-      case "duration":
-        processedMovies.sort(
-          (a, b) => (parseInt(b.duration) || 0) - (parseInt(a.duration) || 0)
-        );
-        break;
-      case "releaseDate":
-        processedMovies.sort(
-          (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)
-        );
-        break;
-      default:
-        break;
-    }
-
-    setFilteredMovies(processedMovies);
-  }, [allMovies, filter, searchTitle, searchGenre, sortBy]); 
+  }, []);
 
   const handleSearch = (title, genre) => {
     setSearchTitle(title);
     setSearchGenre(genre);
   };
 
-  const handleMovieClick = (movieId) => navigate(`/movie/${movieId}`); //Use ID for navigation
+  const handleMovieClick = (movieId) => navigate(`/movie/${movieId}`);
   const handleBooking = (e, movieId) => {
     e.stopPropagation();
-    navigate(`/booking/${movieId}`); //Use ID for navigation
+    navigate(`/booking/${movieId}`);
   };
 
-  if (loading) {
+  if (loading)
     return <div className='ml-loading-container'>Loading Movies...</div>;
-  }
-
-  if (error) {
-    return <div className='ml-error-container'>{error}</div>;
-  }
+  if (error) return <div className='ml-error-container'>{error}</div>;
 
   return (
     <div className='ml-container'>
@@ -145,7 +112,7 @@ const Movies = () => {
       <MovieListSearchBar onSearch={handleSearch} allMovies={allMovies} />
 
       <div className='ml-controls'>
-        <span>{filteredMovies.length} movies found</span>
+        <span>{displayMovies.length} movies found</span>
         <div className='ml-view-controls'>
           <select
             value={sortBy}
@@ -154,7 +121,6 @@ const Movies = () => {
             <option value='releaseDate'>Sort by Release Date</option>
             <option value='title'>Sort by Title</option>
             <option value='rating'>Sort by Rating</option>
-            <option value='duration'>Sort by Duration</option>
           </select>
           <button
             className={`ml-view-btn ${viewMode === "grid" ? "ml-active" : ""}`}
@@ -169,7 +135,7 @@ const Movies = () => {
         </div>
       </div>
 
-      {filteredMovies.length === 0 ? (
+      {displayMovies.length === 0 ? (
         <div className='ml-no-results'>
           <h3>No movies found for this criteria.</h3>
         </div>
@@ -178,12 +144,11 @@ const Movies = () => {
           className={`ml-movies-container ${
             viewMode === "list" ? "ml-list-view" : "ml-grid-view"
           }`}>
-          {filteredMovies.map((movie) => (
+          {displayMovies.map((movie) => (
             <div
               key={movie._id}
               className='ml-movie-card'
-              onClick={() => handleMovieClick(movie._id)} //Pass ID instead
-            >
+              onClick={() => handleMovieClick(movie._id)}>
               <div className='ml-movie-poster'>
                 <img
                   src={movie.moviePoster}

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Select from "react-select";
 import api from "../../api/axios";
-import { useAuth } from "../../context/AuthContext"; 
+import { useAuth } from "../../context/AuthContext";
 import "./MMHeader.css";
 
-// Define genre options for the dropdown
 const genreOptions = [
   { value: "Action", label: "Action" },
   { value: "Adventure", label: "Adventure" },
@@ -25,10 +24,10 @@ const genreOptions = [
 ];
 
 const MMHeader = () => {
-  const { user } = useAuth(); // Get user from context to check for admin role
+  const { user } = useAuth();
   const [movies, setMovies] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingMovie, setEditingMovie] = useState(null);
+  const [editingMovie, setEditingMovie] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -54,11 +53,10 @@ const MMHeader = () => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await api.get("http://localhost:5001/api/movies");
+      const { data } = await api.get("/movies");
       setMovies(data);
     } catch (err) {
-      setError("Failed to fetch movies from the server.");
-      console.error("Fetch movies error:", err);
+      setError("Failed to fetch movies.");
     } finally {
       setLoading(false);
     }
@@ -70,38 +68,27 @@ const MMHeader = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user || user.role !== "admin") {
-      setError("Authorization Error: Only admins can modify movie data.");
-      return;
-    }
     setSubmitting(true);
     setError(null);
 
     const movieData = {
       ...formData,
       genres: selectedGenres.map((g) => g.value),
-      cast:
-        typeof formData.cast === "string"
-          ? formData.cast.split(",").map((item) => item.trim())
-          : [],
     };
 
     try {
       if (editingMovie) {
-        // UPDATE existing movie
-        await axios.put(
-          `http://localhost:5001/api/movies/${editingMovie._id}`,
-          movieData
-        );
+        // If we are editing, send a PUT request
+        await api.put(`/movies/${editingMovie._id}`, movieData);
       } else {
-        // CREATE new movie
-        await api.post("http://localhost:5001/api/movies", movieData);
+        // Otherwise, send a POST request to create a new movie
+        await api.post("/movies", movieData);
       }
       handleCloseModal();
-      fetchMovies(); // Refresh the movie list
+      fetchMovies(); // Refresh the movie list to show changes
     } catch (err) {
       setError(
-        err.response?.data?.message || "An error occurred. Please try again."
+        err.response?.data?.message || "Operation failed. Please try again."
       );
     } finally {
       setSubmitting(false);
@@ -109,31 +96,27 @@ const MMHeader = () => {
   };
 
   const handleDeleteMovie = async (movieId) => {
-    if (!user || user.role !== "admin") {
-      setError("Authorization Error: Only admins can delete movies.");
-      return;
-    }
     if (
       !window.confirm("Are you sure you want to permanently delete this movie?")
     )
       return;
-
     try {
-      await axios.delete(`http://localhost:5001/api/movies/${movieId}`);
-      fetchMovies(); // Refresh the list after deleting
+      await api.delete(`/movies/${movieId}`);
+      fetchMovies();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete movie.");
     }
   };
 
+  //Form for editing an existing movie
   const handleEditMovie = (movie) => {
-    setEditingMovie(movie);
+    setEditingMovie(movie); // Set the movie to be edited
     setFormData({
       title: movie.title || "",
       description: movie.description || "",
-      cast: Array.isArray(movie.cast) ? movie.cast.join(", ") : "",
+      cast: Array.isArray(movie.cast) ? movie.cast.join(", ") : "", 
       director: movie.director || "",
-      releaseDate: movie.releaseDate ? movie.releaseDate.split("T")[0] : "",
+      releaseDate: movie.releaseDate ? movie.releaseDate.split("T")[0] : "", // Format date for input
       duration: movie.duration || "",
       rating: movie.rating || "",
       imdbRating: movie.imdbRating || "",
@@ -145,12 +128,13 @@ const MMHeader = () => {
       ? movie.genres.map((g) => ({ value: g, label: g }))
       : [];
     setSelectedGenres(movieGenres);
-    setShowForm(true);
+    setShowForm(true); // Open the form
     setError(null);
   };
 
+  // This function prepares the form for adding a new movie
   const handleAddMovie = () => {
-    setEditingMovie(null);
+    setEditingMovie(null); // Ensure no movie is being edited
     setFormData(initialFormData);
     setSelectedGenres([]);
     setShowForm(true);
@@ -178,6 +162,14 @@ const MMHeader = () => {
     return (
       <div className='mm-loading-container'>Loading Movie Management...</div>
     );
+  if (!user || user.role !== "admin") {
+    return (
+      <div className='tm-error-container'>
+        <h2>Access Denied</h2>
+        <p>You must be an administrator to view this page.</p>
+      </div>
+    );
+  }
 
   return (
     <div className='mm-container'>
@@ -187,7 +179,6 @@ const MMHeader = () => {
           Add Movie
         </button>
       </div>
-
       {error && !showForm && (
         <div
           className='mm-error-message'
@@ -195,13 +186,12 @@ const MMHeader = () => {
           {error}
         </div>
       )}
-
       {!showForm ? (
         <>
           <div className='mm-search-container'>
             <input
               type='text'
-              placeholder='Search movies by title or director...'
+              placeholder='Search movies...'
               className='mm-search-input'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
