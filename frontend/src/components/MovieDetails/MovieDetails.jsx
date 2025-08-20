@@ -4,34 +4,34 @@ import api from "../../api/axios";
 import "./MovieDetails.css";
 
 const MovieDetailsSkeleton = () => (
-  <div className='movie-details-page'>
-    <div className='movie-details'>
-      <div className='movie-poster-container'>
-        <div className='poster-skeleton' />
+  <div className='md-movie-details-page'>
+    <div className='md-movie-details'>
+      <div className='md-movie-poster-container'>
+        <div className='md-poster-skeleton' />
       </div>
-      <div className='movie-info'>
-        <div className='movie-header'>
+      <div className='md-movie-info'>
+        <div className='md-movie-header'>
           <div
-            className='skeleton-line title'
+            className='md-skeleton-line md-title'
             style={{ width: "70%", height: "40px", marginBottom: "1rem" }}
           />
         </div>
-        <div className='movie-meta'>
-          <div className='meta-item skeleton-box'></div>
-          <div className='meta-item skeleton-box'></div>
-          <div className='meta-item skeleton-box'></div>
+        <div className='md-movie-meta'>
+          <div className='md-meta-item md-skeleton-box'></div>
+          <div className='md-meta-item md-skeleton-box'></div>
+          <div className='md-meta-item md-skeleton-box'></div>
         </div>
-        <div className='movie-genre'>
+        <div className='md-movie-genre'>
           <div
-            className='skeleton-line text'
+            className='md-skeleton-line md-text'
             style={{ width: "100px", height: "24px" }}
           />
         </div>
-        <div className='movie-description'>
+        <div className='md-movie-description'>
           <h3>Plot Summary</h3>
-          <div className='skeleton-line text' style={{ width: "90%" }} />
-          <div className='skeleton-line text' style={{ width: "80%" }} />
-          <div className='skeleton-line text short' style={{ width: "60%" }} />
+          <div className='md-skeleton-line md-text' style={{ width: "90%" }} />
+          <div className='md-skeleton-line md-text' style={{ width: "80%" }} />
+          <div className='md-skeleton-line md-text md-short' style={{ width: "60%" }} />
         </div>
       </div>
     </div>
@@ -112,9 +112,9 @@ const MovieDetails = () => {
     });
   const getRatingClass = (rating) => {
     const numRating = parseFloat(rating);
-    if (numRating >= 8) return "rating-excellent";
-    if (numRating >= 7) return "rating-good";
-    return "rating-average";
+    if (numRating >= 8) return "md-rating-excellent";
+    if (numRating >= 7) return "md-rating-good";
+    return "md-rating-average";
   };
   const truncateText = (text, maxLength = 250) => {
     if (!text || text.length <= maxLength) return text;
@@ -128,10 +128,10 @@ const MovieDetails = () => {
 
   if (error || !movie) {
     return (
-      <div className='movie-details-error'>
+      <div className='md-movie-details-error'>
         <h2>{error || "Movie Not Found"}</h2>
         <p>We couldn't find the movie you were looking for.</p>
-        <button className='btn btn-primary' onClick={() => navigate("/movies")}>
+        <button className='md-action-btn md-book-now-btn' onClick={() => navigate("/movies")}>
           Back to Movies
         </button>
       </div>
@@ -139,17 +139,17 @@ const MovieDetails = () => {
   }
 
   return (
-    <div className='movie-details-page'>
-      <div className='movie-details'>
-        <div className='movie-poster-container'>
+    <div className='md-movie-details-page'>
+      <div className='md-movie-details'>
+        <div className='md-movie-poster-container'>
           <img
             src={movie.moviePosterHomepage}
             alt={movie.title}
-            className='movie-poster'
+            className='md-movie-poster'
           />
-          <div className='poster-overlay'>
+          <div className='md-poster-overlay'>
             <button
-              className={`favorite-btn ${isFavorite ? "favorited" : ""}`}
+              className={`md-favorite-btn ${isFavorite ? "md-favorited" : ""}`}
               onClick={handleFavoriteToggle}
               title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}>
               {isFavorite ? "❤️" : "🤍"}
@@ -157,59 +157,59 @@ const MovieDetails = () => {
           </div>
         </div>
 
-        <div className='movie-info'>
-          <div className='movie-header'>
-            <h1 className='movie-title'>{movie.title}</h1>
-            <div className='movie-actions'>
+        <div className='md-movie-info'>
+          <div className='md-movie-header'>
+            <h1 className='md-movie-title'>{movie.title}</h1>
+            <div className='md-movie-actions'>
               <Link
                 to={`/booking/${movie._id}`}
-                className='action-btn book-now-btn'>
+                className='md-action-btn md-book-now-btn'>
                 Book Tickets
               </Link>
             </div>
           </div>
 
-          <div className='movie-meta'>
-            <div className='meta-item'>
-              <span className='meta-label'>Release Date</span>
-              <span className='meta-value'>
+          <div className='md-movie-meta'>
+            <div className='md-meta-item'>
+              <span className='md-meta-label'>Release Date</span>
+              <span className='md-meta-value'>
                 {formatReleaseDate(movie.releaseDate)}
               </span>
             </div>
-            <div className='meta-item'>
-              <span className='meta-label'>IMDb Rating</span>
+            <div className='md-meta-item'>
+              <span className='md-meta-label'>IMDb Rating</span>
               <span
-                className={`meta-value rating ${getRatingClass(
+                className={`md-meta-value md-rating ${getRatingClass(
                   movie.imdbRating
                 )}`}>
                 ⭐ {movie.imdbRating || "N/A"}
               </span>
             </div>
-            <div className='meta-item'>
-              <span className='meta-label'>Duration</span>
-              <span className='meta-value'>{movie.duration}</span>
+            <div className='md-meta-item'>
+              <span className='md-meta-label'>Duration</span>
+              <span className='md-meta-value'>{movie.duration}</span>
             </div>
           </div>
 
-          <div className='movie-genre'>
-            <span className='genre-label'>Genres</span>
-            <div className='genre-tags'>
+          <div className='md-movie-genre'>
+            <span className='md-genre-label'>Genres</span>
+            <div className='md-genre-tags'>
               {movie.genres?.map((genre, index) => (
-                <span key={index} className='genre-tag'>
+                <span key={index} className='md-genre-tag'>
                   {genre}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className='movie-description'>
+          <div className='md-movie-description'>
             <h3>Plot Summary</h3>
-            <p className='description-text'>
+            <p className='md-description-text'>
               {truncateText(movie.description)}
             </p>
             {movie.description && movie.description.length > 250 && (
               <button
-                className='expand-btn'
+                className='md-expand-btn'
                 onClick={() =>
                   setIsDescriptionExpanded(!isDescriptionExpanded)
                 }>
@@ -218,14 +218,14 @@ const MovieDetails = () => {
             )}
           </div>
 
-          <div className='movie-credits'>
-            <div className='credit-item'>
-              <span className='credit-label'>Director:</span>
-              <span className='credit-value'>{movie.director}</span>
+          <div className='md-movie-credits'>
+            <div className='md-credit-item'>
+              <span className='md-credit-label'>Director:</span>
+              <span className='md-credit-value'>{movie.director}</span>
             </div>
-            <div className='credit-item'>
-              <span className='credit-label'>Cast:</span>
-              <span className='credit-value'>{movie.cast?.join(", ")}</span>
+            <div className='md-credit-item'>
+              <span className='md-credit-label'>Cast:</span>
+              <span className='md-credit-value'>{movie.cast?.join(", ")}</span>
             </div>
           </div>
         </div>
