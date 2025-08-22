@@ -3,6 +3,7 @@ import Showtime from "../models/showtimeModel.js";
 import ShowtimeSeats from "../models/showtimeSeatsModel.js";
 import { broadcastMessage } from "../websocket.js";
 import shortid from "shortid";
+import { sendBookingConfirmationEmail } from "../services/emailService.js";
 
 export const createBooking = async (req, res) => {
   try {
@@ -28,7 +29,16 @@ export const createBooking = async (req, res) => {
         });
     }
 
-    const showtime = await Showtime.findById(showtimeId).populate("movieId");
+    const showtime = await Showtime.findById(showtimeId)
+      .populate("movieId")
+      .populate({
+        path: "screenId",
+        populate: {
+          path: "theatreId",
+          model: "Theatre"
+        }
+      });
+      
     if (!showtime) {
       return res.status(404).json({ message: "Showtime not found" });
     }
@@ -51,6 +61,48 @@ export const createBooking = async (req, res) => {
     );
 
     broadcastMessage({ type: "BOOKING_UPDATE", showtimeId: showtimeId });
+
+    // Get seat details for email
+    const seatDetails = await ShowtimeSeats.find({
+      _id: { $in: showtimeSeatIds }
+    }).populate('seatId');
+
+    const seatNumbers = seatDetails.map(ss => ss.seatId.seatNumber).join(', ');
+
+    // Get user details
+    const user = req.user;
+
+    // Prepare email details
+    const bookingDetails = {
+      customerName: `${user.firstName} ${user.lastName}`,
+      ticketNo: newBooking.ticketNo,
+      movieTitle: showtime.movieId.title,
+      theatreLocation: showtime.screenId.theatreId.location,
+      screenNumber: showtime.screenId.screenNumber,
+      seats: seatNumbers,
+      date: new Date(showtime.start_date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      time: showtime.start_time,
+      totalAmount: totalAmount,
+      seatCount: showtimeSeatIds.length
+    };
+
+    // Send email asynchronously (don't wait for it)
+    sendBookingConfirmationEmail(user.email, bookingDetails)
+      .then(result => {
+        if (result.success) {
+          console.log('Booking confirmation email sent successfully');
+        } else {
+          console.error('Failed to send booking confirmation email:', result.error);
+        }
+      })
+      .catch(err => {
+        console.error('Error sending booking email:', err);
+      });
 
     res.status(201).json(newBooking);
   } catch (err) {
