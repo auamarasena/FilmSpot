@@ -15,12 +15,11 @@ const showtimeSchema = new mongoose.Schema({
   start_time: { type: String, required: true },
   seatPrice: { type: Number, required: true },
   recurrence: {
-    type: { type: String, enum: ["none", "daily"], default: "none" }, 
+    type: { type: String, enum: ["none", "daily"], default: "none" },
     endDate: { type: Date },
   },
 });
 
 const Showtime = mongoose.model("Showtime", showtimeSchema);
-
 
 export default Showtime;

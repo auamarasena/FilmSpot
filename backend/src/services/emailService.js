@@ -1,11 +1,11 @@
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
 dotenv.config();
 
 // Create transporter with email configuration
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  host: process.env.EMAIL_HOST || "smtp.gmail.com",
   port: parseInt(process.env.EMAIL_PORT) || 587,
   secure: false, // true for 465, false for other ports
   auth: {
@@ -13,16 +13,16 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
   tls: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: false,
+  },
 });
 
 // Verify transporter configuration
 transporter.verify((error, success) => {
   if (error) {
-    console.error('Email service error:', error);
+    console.error("Email service error:", error);
   } else {
-    console.log('Email service is ready to send emails');
+    console.log("Email service is ready to send emails");
   }
 });
 
@@ -38,7 +38,7 @@ const generateBookingEmailHTML = (bookingDetails) => {
     date,
     time,
     totalAmount,
-    seatCount
+    seatCount,
   } = bookingDetails;
 
   return `
@@ -192,7 +192,9 @@ const generateBookingEmailHTML = (bookingDetails) => {
             </div>
             <div class="detail-row" style="font-size: 18px;">
               <span class="label"><strong>Total Amount:</strong></span>
-              <span class="value"><strong>Rs. ${totalAmount.toFixed(2)}</strong></span>
+              <span class="value"><strong>Rs. ${totalAmount.toFixed(
+                2
+              )}</strong></span>
             </div>
           </div>
           
@@ -207,7 +209,9 @@ const generateBookingEmailHTML = (bookingDetails) => {
           </div>
           
           <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/booking-history" class="cta-button">
+            <a href="${
+              process.env.FRONTEND_URL || "http://localhost:5173"
+            }/booking-history" class="cta-button">
               View My Bookings
             </a>
           </div>
@@ -227,24 +231,27 @@ const generateBookingEmailHTML = (bookingDetails) => {
 };
 
 // Send booking confirmation email
-export const sendBookingConfirmationEmail = async (userEmail, bookingDetails) => {
+export const sendBookingConfirmationEmail = async (
+  userEmail,
+  bookingDetails
+) => {
   try {
     const mailOptions = {
-      from: process.env.EMAIL_FROM || '"FilmSpot" <noreply@filmspot.com>',
+      from: process.env.EMAIL_FROM || '"FilmSpot" <filmspotcinema@gmail.com>',
       to: userEmail,
       subject: `Booking Confirmation - ${bookingDetails.movieTitle} - Ticket #${bookingDetails.ticketNo}`,
       html: generateBookingEmailHTML(bookingDetails),
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.messageId);
+    console.log("Email sent successfully:", info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error("Error sending email:", error);
     return { success: false, error: error.message };
   }
 };
 
 export default {
-  sendBookingConfirmationEmail
+  sendBookingConfirmationEmail,
 };

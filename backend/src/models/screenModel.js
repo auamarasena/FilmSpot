@@ -14,5 +14,4 @@ const screenSchema = new mongoose.Schema({
 
 const Screen = mongoose.model("Screens", screenSchema);
 
-
 export default Screen;

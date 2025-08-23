@@ -13,12 +13,11 @@ const showtimeSeatsSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["available", "booked", "locked"], 
+    enum: ["available", "booked", "locked"],
     default: "available",
   },
 });
 
 const ShowtimeSeats = mongoose.model("Showtime_Seats", showtimeSeatsSchema);
-
 
 export default ShowtimeSeats;

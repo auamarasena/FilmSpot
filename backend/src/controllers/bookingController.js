@@ -20,7 +20,7 @@ export const createBooking = async (req, res) => {
     const seatsInDB = await ShowtimeSeats.find({
       _id: { $in: showtimeSeatIds },
       showtimeId: showtimeId,
-    });
+    }).populate("seatId");
 
     if (seatsInDB.length !== showtimeSeatIds.length) {
       return res.status(400).json({ message: "Invalid seat selection" });
@@ -40,10 +40,10 @@ export const createBooking = async (req, res) => {
         path: "screenId",
         populate: {
           path: "theatreId",
-          model: "Theatre"
-        }
+          model: "Theatre",
+        },
       });
-      
+
     if (!showtime) {
       return res.status(404).json({ message: "Showtime not found" });
     }
@@ -68,16 +68,38 @@ export const createBooking = async (req, res) => {
     // Send booking confirmation email
     try {
       const user = req.user;
-      await sendBookingConfirmationEmail(user.email, {
-        userName: `${user.firstName} ${user.lastName}`,
-        bookingId: booking.bookingId,
-        movieTitle: showtime.movieId.title,
-        showtime: showtime.start_time,
-        seats: seatsInDB.map((s) => s.seatNumber).join(", "),
-        totalPrice: booking.totalPrice,
-      });
+
+      // Create proper datetime by combining date and time
+      const showDate = new Date(showtime.start_date);
+      const [hours, minutes] = showtime.start_time.split(":");
+      showDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+      const emailData = {
+        customerName: `${user.firstName} ${user.lastName}`,
+        ticketNo: booking.bookingId,
+        movieTitle: showtime.movieId?.title || "Movie",
+        theatreLocation: showtime.screenId?.theatreId?.location || "Theatre",
+        screenNumber: showtime.screenId?.screenNumber || "N/A",
+        seats: seatsInDB.map((s) => s.seatId?.seatNumber || "N/A").join(", "),
+        date: showDate.toLocaleDateString(),
+        time: showDate.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        totalAmount: booking.totalPrice,
+        seatCount: showtimeSeatIds.length,
+      };
+
+      console.log("Email data being sent:", emailData);
+
+      await sendBookingConfirmationEmail(user.email, emailData);
+      console.log(
+        "Booking confirmation email sent successfully to:",
+        user.email
+      );
     } catch (emailError) {
       console.error("Failed to send booking confirmation email:", emailError);
+      console.error("Email error details:", emailError.stack);
       // Don't fail the booking if email fails
     }
 
