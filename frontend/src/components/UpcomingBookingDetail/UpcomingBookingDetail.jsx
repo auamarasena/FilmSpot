@@ -15,7 +15,7 @@ const sampleBookingData = {
     ticketNo: "TKT123456789",
     seatCount: 2,
     totalAmount: "550.00",
-    booking_date: "2025-10-26T10:00:00.000Z",
+    createdAt: "2025-10-26T10:00:00.000Z",
   },
   userDetails: {
     firstName: "John",
@@ -61,14 +61,15 @@ function Booking() {
   } = sampleBookingData;
 
   // Format the booking date
-  const formattedDate = new Date(
-    bookingDetails.booking_date
-  ).toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const formattedDate = new Date(bookingDetails.createdAt).toLocaleDateString(
+    "en-US",
+    {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }
+  );
 
   return (
     <div className='booking-container'>

@@ -50,7 +50,7 @@ function BookingHistoryP() {
   const bookingStats = useMemo(() => {
     const total = bookings.length;
     const thisMonth = bookings.filter(
-      (b) => new Date(b.booking_date).getMonth() === new Date().getMonth()
+      (b) => new Date(b.createdAt).getMonth() === new Date().getMonth()
     ).length;
     const totalSeats = bookings.reduce((sum, b) => sum + (b.seatCount || 0), 0);
     return { total, thisMonth, totalSeats };
@@ -143,11 +143,10 @@ function BookingHistoryP() {
                         <div className='bkh-booking-details'>
                           <span className='bkh-cinema'>
                             🎬{" "}
-                            {booking.showtime?.screenId?.theatreId
-                              ?.location || "N/A"}{" "}
+                            {booking.showtime?.screenId?.theatreId?.location ||
+                              "N/A"}{" "}
                             - Screen{" "}
-                            {booking.showtime?.screenId?.screenNumber ||
-                              "N/A"}
+                            {booking.showtime?.screenId?.screenNumber || "N/A"}
                           </span>
                           <span className='bkh-date'>
                             📅{" "}
@@ -185,7 +184,7 @@ function BookingHistoryP() {
           )}
         </div>
       </div>
-      
+
       <BookingDetailsModal
         booking={selectedBooking}
         isOpen={isModalOpen}
