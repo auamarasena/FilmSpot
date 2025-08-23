@@ -11,6 +11,14 @@ const generateToken = (id) => {
 //POST /api/auth/register
 export const registerUser = async (req, res) => {
   const { firstName, lastName, email, password, mobile } = req.body;
+  
+  // Validate required fields
+  if (!firstName || !lastName || !email || !password || !mobile) {
+    return res.status(400).json({ 
+      message: "All fields are required (firstName, lastName, email, password, mobile)" 
+    });
+  }
+  
   try {
     const userExists = await User.findOne({ email });
     if (userExists) {

@@ -19,14 +19,19 @@ export const createBooking = async (req, res) => {
     // Additional check to prevent double booking
     const seatsInDB = await ShowtimeSeats.find({
       _id: { $in: showtimeSeatIds },
+      showtimeId: showtimeId,
     });
-    if (seatsInDB.some((seat) => seat.status === "booked")) {
-      return res
-        .status(409)
-        .json({
-          message:
-            "Sorry, one or more seats have just been booked by another user. Please select again.",
-        });
+
+    if (seatsInDB.length !== showtimeSeatIds.length) {
+      return res.status(400).json({ message: "Invalid seat selection" });
+    }
+
+    const seatsBooked = seatsInDB.filter((seat) => seat.status === "booked");
+    if (seatsBooked.length > 0) {
+      return res.status(409).json({
+        message: "One or more selected seats are already booked",
+        bookedSeats: seatsBooked.map((s) => s.seatNumber),
+      });
     }
 
     const showtime = await Showtime.findById(showtimeId)
@@ -43,159 +48,184 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ message: "Showtime not found" });
     }
 
-    const totalAmount = showtime.seatPrice * showtimeSeatIds.length;
-
-    const booking = new Booking({
-      userId,
-      showtimeId,
+    // Create booking
+    const bookingId = shortid.generate();
+    const booking = await Booking.create({
+      user: userId,
+      showtime: showtimeId,
       showtimeSeatIds,
-      totalAmount,
-      seatCount: showtimeSeatIds.length,
-      ticketNo: shortid.generate(),
+      totalPrice: showtimeSeatIds.length * showtime.seatPrice,
+      bookingStatus: "confirmed",
+      bookingId,
     });
-    const newBooking = await booking.save();
 
+    // Update seat status to booked
     await ShowtimeSeats.updateMany(
       { _id: { $in: showtimeSeatIds } },
       { $set: { status: "booked" } }
     );
 
-    broadcastMessage({ type: "BOOKING_UPDATE", showtimeId: showtimeId });
+    // Send booking confirmation email
+    try {
+      const user = req.user;
+      await sendBookingConfirmationEmail(user.email, {
+        userName: `${user.firstName} ${user.lastName}`,
+        bookingId: booking.bookingId,
+        movieTitle: showtime.movieId.title,
+        showtime: showtime.start_time,
+        seats: seatsInDB.map((s) => s.seatNumber).join(", "),
+        totalPrice: booking.totalPrice,
+      });
+    } catch (emailError) {
+      console.error("Failed to send booking confirmation email:", emailError);
+      // Don't fail the booking if email fails
+    }
 
-    // Get seat details for email
-    const seatDetails = await ShowtimeSeats.find({
-      _id: { $in: showtimeSeatIds }
-    }).populate('seatId');
-
-    const seatNumbers = seatDetails.map(ss => ss.seatId.seatNumber).join(', ');
-
-    // Get user details
-    const user = req.user;
-
-    // Prepare email details
-    const bookingDetails = {
-      customerName: `${user.firstName} ${user.lastName}`,
-      ticketNo: newBooking.ticketNo,
-      movieTitle: showtime.movieId.title,
-      theatreLocation: showtime.screenId.theatreId.location,
-      screenNumber: showtime.screenId.screenNumber,
-      seats: seatNumbers,
-      date: new Date(showtime.start_date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }),
-      time: showtime.start_time,
-      totalAmount: totalAmount,
-      seatCount: showtimeSeatIds.length
-    };
-
-    // Send email asynchronously (don't wait for it)
-    sendBookingConfirmationEmail(user.email, bookingDetails)
-      .then(result => {
-        if (result.success) {
-          console.log('Booking confirmation email sent successfully');
-        } else {
-          console.error('Failed to send booking confirmation email:', result.error);
-        }
+    // Get populated booking data
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate("user", "firstName lastName email")
+      .populate({
+        path: "showtime",
+        populate: {
+          path: "movieId",
+          select: "title",
+        },
       })
-      .catch(err => {
-        console.error('Error sending booking email:', err);
+      .populate({
+        path: "showtimeSeatIds",
+        select: "seatNumber row",
       });
 
-    res.status(201).json(newBooking);
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error creating booking", error: err.message });
+    // Broadcast seat updates to all connected clients
+    broadcastMessage({
+      type: "SEAT_UPDATE",
+      showtimeId,
+      seatIds: showtimeSeatIds,
+      status: "booked",
+    });
+
+    // Also broadcast booking count update
+    broadcastMessage({ type: "BOOKING_COUNT_UPDATE" });
+
+    res.status(201).json(populatedBooking);
+  } catch (error) {
+    console.error("Booking creation error:", error);
+    res.status(400).json({ message: error.message });
   }
 };
 
-export const getAllBookings = async (req, res) => {
+export const getUserBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({}).populate(
-      "userId",
-      "firstName lastName"
-    );
+    const bookings = await Booking.find({ user: req.user._id })
+      .populate({
+        path: "showtime",
+        populate: [
+          {
+            path: "movieId",
+            select: "title moviePoster releaseDate duration rating",
+          },
+          {
+            path: "screenId",
+            select: "screenNumber format",
+            populate: {
+              path: "theatreId",
+              select: "name location",
+            },
+          },
+        ],
+      })
+      .populate({
+        path: "showtimeSeatIds",
+        select: "seatNumber row",
+      })
+      .sort({ createdAt: -1 });
+
     res.json(bookings);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    console.error("Error fetching user bookings:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
 export const getBookingById = async (req, res) => {
   try {
+    const booking = await Booking.findById(req.params.id)
+      .populate("user", "firstName lastName email")
+      .populate({
+        path: "showtime",
+        populate: [
+          {
+            path: "movieId",
+            select: "title moviePoster",
+          },
+          {
+            path: "screenId",
+            select: "screenNumber format",
+            populate: {
+              path: "theatreId",
+              select: "name location",
+            },
+          },
+        ],
+      })
+      .populate({
+        path: "showtimeSeatIds",
+        select: "seatNumber row",
+      });
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Check if the user is authorized to view this booking
+    if (
+      booking.user._id.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to view this booking" });
+    }
+
+    res.json(booking);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const cancelBooking = async (req, res) => {
+  try {
     const booking = await Booking.findById(req.params.id);
     if (!booking) {
       return res.status(404).json({ message: "Cannot find booking" });
     }
-    if (
-      booking.userId.toString() !== req.user._id.toString() &&
-      req.user.role !== "admin"
-    ) {
-      return res
-        .status(401)
-        .json({ message: "Not authorized to view this booking" });
+    if (booking.bookingStatus === "cancelled") {
+      return res.status(400).json({ message: "Booking is already cancelled" });
     }
-    res.json(booking);
+    booking.bookingStatus = "cancelled";
+    await booking.save();
+    await ShowtimeSeats.updateMany(
+      { _id: { $in: booking.showtimeSeatIds } },
+      { $set: { status: "available" } }
+    );
+    // Broadcast seat updates
+    broadcastMessage({
+      type: "SEAT_UPDATE",
+      showtimeId: booking.showtime,
+      seatIds: booking.showtimeSeatIds,
+      status: "available",
+    });
+    res.json({ message: "Booking cancelled successfully" });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
 };
 
-export const getMyBookings = async (req, res) => {
+// Get total booking count
+export const getTotalBookingCount = async (req, res) => {
   try {
-    const bookings = await Booking.find({ userId: req.user._id })
-      .sort({ booking_date: -1 }) // Sort by newest booking first
-      .populate({
-        path: "showtimeId",
-        select: "start_date start_time", // Select the fields we need from the showtime
-        populate: [
-          {
-            path: "movieId",
-            model: "Movie",
-            select: "title moviePoster", // Get the movie title and poster
-          },
-          {
-            path: "screenId",
-            model: "Screens",
-            select: "screenNumber", // Get the screen number
-            populate: {
-              path: "theatreId",
-              model: "Theatre",
-              select: "location", // Get the theatre location
-            },
-          },
-        ],
-      });
-
-    if (!bookings || bookings.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No bookings found for this user" });
-    }
-
-    res.json(bookings);
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error fetching user's bookings", error: err.message });
-  }
-};
-
-export const deleteBookingById = async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ message: "Cannot find booking" });
-    }
-    await ShowtimeSeats.updateMany(
-      { _id: { $in: booking.showtimeSeatIds } },
-      { $set: { status: "available" } }
-    );
-    await booking.deleteOne();
-    res.json({ message: "Booking deleted and seats released" });
+    const count = await Booking.countDocuments();
+    res.json({ count });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

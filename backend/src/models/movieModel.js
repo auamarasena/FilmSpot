@@ -23,7 +23,7 @@ const movieSchema = mongoose.Schema(
       required: true,
     },
     duration: {
-      type: String,
+      type: Number,
       required: true,
     },
     rating: {
@@ -32,10 +32,17 @@ const movieSchema = mongoose.Schema(
     genres: {
       type: [String],
       required: true,
-      default: [],
+      validate: {
+        validator: function(v) {
+          return v && v.length > 0;
+        },
+        message: 'At least one genre is required'
+      }
     },
     imdbRating: {
       type: Number,
+      min: [0, 'IMDB rating must be at least 0'],
+      max: [10, 'IMDB rating must be at most 10']
     },
     trailerURL: {
       type: String,

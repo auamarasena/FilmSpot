@@ -46,8 +46,8 @@ export const getShowtimesByMovie = async (req, res) => {
       _id: st._id,
       startTime: st.start_time,
       startDate: st.start_date,
-      theatreLocation: st.screenId.theatreId.location,
-      screenFormat: st.screenId.format,
+      theatreLocation: st.screenId?.theatreId?.location || "Unknown Theatre",
+      screenFormat: st.screenId?.format || "Standard",
     }));
     res.json(formattedShowtimes);
   } catch (error) {
