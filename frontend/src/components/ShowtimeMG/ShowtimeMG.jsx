@@ -23,7 +23,7 @@ function ShowtimeMG() {
     start_time: "12:00",
     seatPrice: "",
     recurrence: { type: "none", endDate: null },
-    theatreLocation: "", 
+    theatreLocation: "",
   };
   const [formData, setFormData] = useState(initialFormData);
 
