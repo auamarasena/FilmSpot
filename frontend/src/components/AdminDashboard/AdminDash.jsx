@@ -37,7 +37,7 @@ const ActivityItem = ({ icon, title, description, time }) => (
 
 //Main Admin Dashboard
 const AdminDash = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -51,10 +51,11 @@ const AdminDash = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    if (isAuthenticated === null) {
+    // Wait for auth to finish loading before checking authentication
+    if (authLoading) {
       return;
     }
-    if (isAuthenticated === false) {
+    if (!authLoading && isAuthenticated === false) {
       navigate("/sign-in-admin");
       return; // Stop execution
     }
@@ -84,7 +85,7 @@ const AdminDash = () => {
       // If user is not an admin, redirect them away.
       navigate("/");
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, authLoading, navigate]);
 
   // Effect for the live clock
   useEffect(() => {

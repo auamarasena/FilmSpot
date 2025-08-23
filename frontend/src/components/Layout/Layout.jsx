@@ -1,11 +1,11 @@
 import React from "react";
 import { useLocation, Outlet } from "react-router-dom";
 import Navbar from "../Navbar/Navbar";
+import Footer from "../Footer/Footer";
 
 const Layout = () => {
   const location = useLocation();
 
-  // Define the paths where the Navbar should NOT be displayed
   const noNavPaths = [
     "/admin-dash",
     "/movie-manage",
@@ -16,17 +16,17 @@ const Layout = () => {
     "/reg-form",
   ];
 
-  // Check if the current path starts with any of the noNavPaths
-  const showNav = !noNavPaths.some((path) =>
+  const showNavAndFooter = !noNavPaths.some((path) =>
     location.pathname.startsWith(path)
   );
 
   return (
     <>
-      {showNav && <Navbar />}
+      {showNavAndFooter && <Navbar />}
       <main>
         <Outlet />
       </main>
+      {showNavAndFooter && <Footer />}
     </>
   );
 };

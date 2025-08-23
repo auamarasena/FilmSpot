@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Play,
-  Ticket,
-  Star,
-  Clock,
-  Users,
-  Award,
-  TrendingUp,
-} from "lucide-react";
+  MdPlayArrow as Play,
+  MdConfirmationNumber as Ticket,
+  MdStar as Star,
+  MdAccessTime as Clock,
+  MdPeople as Users,
+  MdEmojiEvents as Award,
+  MdTrendingUp as TrendingUp,
+} from "react-icons/md";
 import api from "../../api/axios";
 import "./Home.css";
 

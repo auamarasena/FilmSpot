@@ -64,7 +64,7 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  const isUpcoming = new Date(booking.showtimeId.start_date) > new Date();
+  const isUpcoming = new Date(booking.showtime?.start_date) > new Date();
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -89,19 +89,19 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
 
             <div className="modal-body">
               <div className="movie-section">
-                {booking.showtimeId?.movieId?.moviePoster && (
+                {booking.showtime?.movieId?.moviePoster && (
                   <img
-                    src={booking.showtimeId.movieId.moviePoster}
-                    alt={booking.showtimeId.movieId.title}
+                    src={booking.showtime?.movieId?.moviePoster}
+                    alt={booking.showtime?.movieId?.title}
                     className="movie-poster-small"
                   />
                 )}
                 <div className="movie-info">
                   <h3 className="movie-title-modal">
-                    {booking.showtimeId?.movieId?.title || "Movie Unavailable"}
+                    {booking.showtime?.movieId?.title || "Movie Unavailable"}
                   </h3>
                   <p className="theatre-info">
-                    {booking.showtimeId?.screenId?.theatreId?.location || "N/A"}
+                    {booking.showtime?.screenId?.theatreId?.location || "N/A"}
                   </p>
                 </div>
               </div>
@@ -115,21 +115,21 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                 <div className="detail-item">
                   <span className="detail-label">Screen</span>
                   <span className="detail-value">
-                    Screen {booking.showtimeId?.screenId?.screenNumber || "N/A"}
+                    Screen {booking.showtime?.screenId?.screenNumber || "N/A"}
                   </span>
                 </div>
 
                 <div className="detail-item">
                   <span className="detail-label">Date</span>
                   <span className="detail-value">
-                    {formatDate(booking.showtimeId.start_date)}
+                    {formatDate(booking.showtime?.start_date)}
                   </span>
                 </div>
 
                 <div className="detail-item">
                   <span className="detail-label">Show Time</span>
                   <span className="detail-value">
-                    {formatTime(booking.showtimeId.start_time)}
+                    {formatTime(booking.showtime?.start_time)}
                   </span>
                 </div>
 
@@ -154,7 +154,7 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
 
                 <div className="detail-item total-amount">
                   <span className="detail-label">Total Amount</span>
-                  <span className="detail-value">Rs. {booking.totalAmount.toFixed(2)}</span>
+                  <span className="detail-value">Rs. {booking.totalPrice?.toFixed(2) || '0.00'}</span>
                 </div>
               </div>
 

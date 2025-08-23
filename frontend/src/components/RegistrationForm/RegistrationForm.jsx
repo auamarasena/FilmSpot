@@ -3,19 +3,19 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import {
-  Mail,
-  Lock,
-  User,
-  Phone,
-  Eye,
-  EyeOff,
-  UserPlus,
-  CheckCircle,
-  AlertCircle,
-  Loader,
-  Shield,
-  Gift,
-} from "lucide-react";
+  MdEmail as Mail,
+  MdLock as Lock,
+  MdPerson as User,
+  MdPhone as Phone,
+  MdVisibility as Eye,
+  MdVisibilityOff as EyeOff,
+  MdPersonAdd as UserPlus,
+  MdCheckCircle as CheckCircle,
+  MdError as AlertCircle,
+  MdRotateRight as Loader,
+  MdSecurity as Shield,
+  MdCardGiftcard as Gift,
+} from "react-icons/md";
 import "./RegistrationForm.css";
 
 const RegistrationForm = () => {

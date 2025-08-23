@@ -124,7 +124,7 @@ function BookingHistoryP() {
               </div>
               <div className='bkh-bookings-list'>
                 {bookings.map((booking) => {
-                  const showtimeDate = new Date(booking.showtimeId.start_date);
+                  const showtimeDate = new Date(booking.showtime?.start_date);
                   const status =
                     showtimeDate < new Date() ? "completed" : "confirmed";
 
@@ -137,23 +137,23 @@ function BookingHistoryP() {
                       tabIndex={0}>
                       <div className='bkh-booking-info'>
                         <div className='bkh-movie-title'>
-                          {booking.showtimeId?.movieId?.title ||
+                          {booking.showtime?.movieId?.title ||
                             "Movie unavailable"}
                         </div>
                         <div className='bkh-booking-details'>
                           <span className='bkh-cinema'>
                             🎬{" "}
-                            {booking.showtimeId?.screenId?.theatreId
+                            {booking.showtime?.screenId?.theatreId
                               ?.location || "N/A"}{" "}
                             - Screen{" "}
-                            {booking.showtimeId?.screenId?.screenNumber ||
+                            {booking.showtime?.screenId?.screenNumber ||
                               "N/A"}
                           </span>
                           <span className='bkh-date'>
                             📅{" "}
                             {formatDate(
-                              booking.showtimeId.start_date,
-                              booking.showtimeId.start_time
+                              booking.showtime?.start_date,
+                              booking.showtime?.start_time
                             )}
                           </span>
                           <span className='bkh-seats'>

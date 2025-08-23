@@ -97,7 +97,7 @@ function BookingSuccess() {
           <div className='detail-item total-amount'>
             <span className='label'>Total Amount:</span>
             <span className='value'>
-              Rs. {displayData.totalAmount.toFixed(2)}
+              Rs. {displayData.totalAmount ? displayData.totalAmount.toFixed(2) : '0.00'}
             </span>
           </div>
         </div>

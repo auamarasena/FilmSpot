@@ -2,7 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import MovieListSearchBar from "./MovieListSearchbar";
-import { Grid, List, Clock, Star, Calendar } from "lucide-react";
+import { 
+  MdGrid3X3 as Grid, 
+  MdList as List, 
+  MdAccessTime as Clock, 
+  MdStar as Star, 
+  MdCalendarToday as Calendar 
+} from "react-icons/md";
 import "./movies.css";
 
 const Movies = () => {

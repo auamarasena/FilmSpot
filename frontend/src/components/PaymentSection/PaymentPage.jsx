@@ -54,7 +54,7 @@ const PaymentPage = () => {
           ),
           selectedTime: showtimeDetails.start_time,
           selectedSeats,
-          totalAmount: newBooking.totalAmount,
+          totalAmount: newBooking.totalPrice,
           userDetails: user,
           showtimeDetails,
         },

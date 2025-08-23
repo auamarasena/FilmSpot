@@ -3,17 +3,17 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../../api/axios";
 import ShowtimeSelector from "../Showtimes/ShowtimeSelector.jsx";
 import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Star,
-  Info,
-  Ticket,
-  Home,
-  ChevronRight,
-  Film,
-  Heart, 
-} from "lucide-react";
+  MdArrowBack as ArrowLeft,
+  MdCalendarToday as Calendar,
+  MdAccessTime as Clock,
+  MdStar as Star,
+  MdInfo as Info,
+  MdConfirmationNumber as Ticket,
+  MdHome as Home,
+  MdChevronRight as ChevronRight,
+  MdMovie as Film,
+  MdFavorite as Heart, 
+} from "react-icons/md";
 import "./MovieBooking.css";
 
 const MovieBooking = () => {

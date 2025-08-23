@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Search, Filter, X, ChevronDown } from "lucide-react";
+import { 
+  MdSearch as Search, 
+  MdFilterList as Filter, 
+  MdClose as X, 
+  MdKeyboardArrowDown as ChevronDown 
+} from "react-icons/md";
 import "./MovieListSearchbar.css";
 
 const MovieListSearchBar = ({ onSearch, allMovies = [] }) => {

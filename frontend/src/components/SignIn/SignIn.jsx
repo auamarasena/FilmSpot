@@ -4,16 +4,16 @@ import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext"; 
 
 import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  LogIn,
-  User,
-  AlertCircle,
-  CheckCircle,
-  Loader,
-} from "lucide-react";
+  MdEmail as Mail,
+  MdLock as Lock,
+  MdVisibility as Eye,
+  MdVisibilityOff as EyeOff,
+  MdLogin as LogIn,
+  MdPerson as User,
+  MdError as AlertCircle,
+  MdCheckCircle as CheckCircle,
+  MdRotateRight as Loader,
+} from "react-icons/md";
 import "./SignIn.css";
 
 const SignIn = () => {
