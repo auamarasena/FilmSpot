@@ -4,12 +4,12 @@ Example :
 
 FilmSpot/ npm install
 
-FilmSpot/ cd backend
+FilmSpot/cd backend
 FilmSpot/backend
 npm install
 
-FilmSpot/ cd../
-FilmSpot/ cd frontend
+FilmSpot/backend/cd../
+FilmSpot/cd frontend
 FilmSpot/frontend
 npm install
 
